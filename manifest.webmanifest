@@ -1,0 +1,42 @@
+{
+  "name": "撲克記帳王 PokerRoll",
+  "short_name": "撲克記帳王",
+  "description": "現場德州撲克現金桌與錦標賽資金管理 App — 記錄買入、收池、盲注與圖表分析",
+  "lang": "zh-TW",
+  "dir": "ltr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fef9c3",
+  "theme_color": "#059669",
+  "categories": ["finance", "utilities", "games"],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "記一筆戰績",
+      "short_name": "記帳",
+      "url": "./index.html",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

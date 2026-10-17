@@ -1,0 +1,1672 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#059669">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PokerRoll">
+    <title>PokerRoll 撲克記帳王 | 現場德州撲克資金 App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&amp;family=JetBrains+Mono:wght@600;700;800&amp;family=Noto+Sans+TC:wght@500;700;900&amp;display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #fef9c3;
+            background-image: 
+                radial-gradient(at 10% 10%, rgba(251, 191, 36, 0.35) 0px, transparent 50%),
+                radial-gradient(at 90% 15%, rgba(244, 63, 94, 0.25) 0px, transparent 50%),
+                radial-gradient(at 80% 85%, rgba(16, 185, 129, 0.3) 0px, transparent 50%),
+                radial-gradient(at 15% 85%, rgba(99, 102, 241, 0.25) 0px, transparent 50%);
+            color: #1e293b;
+            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior-y: none;
+        }
+        /* 街機卡通立體按鈕效果 */
+        .btn-pop {
+            transition: all 0.12s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border-bottom-width: 4px;
+        }
+        .btn-pop:active {
+            transform: translateY(3px) scale(0.97);
+            border-bottom-width: 1px;
+        }
+        .card-pop {
+            background: rgba(255, 255, 255, 0.96);
+            border: 3px solid #1e293b;
+            box-shadow: 0 6px 0px #1e293b, 0 12px 24px rgba(0,0,0,0.08);
+        }
+        /* 現金桌鮮豔綠按鈕 */
+        .cash-active {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white !important;
+            border: 2px solid #064e3b;
+            box-shadow: 0 4px 0px #064e3b;
+        }
+        /* 錦標賽鮮豔橘紅按鈕 */
+        .mtt-active {
+            background: linear-gradient(135deg, #f97316 0%, #e11d48 100%);
+            color: white !important;
+            border: 2px solid #881337;
+            box-shadow: 0 4px 0px #881337;
+        }
+        /* 底部導覽列選中狀態 */
+        .nav-active {
+            background: linear-gradient(135deg, #facc15 0%, #f97316 100%);
+            color: #0f172a !important;
+            border: 2px solid #1e293b;
+            box-shadow: 0 4px 0px #1e293b;
+            transform: translateY(-4px);
+        }
+        /* 漂浮撲克貼圖動畫 */
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px) rotate(-6deg); }
+            50% { transform: translateY(-5px) rotate(4deg); }
+        }
+        .sticker-float {
+            animation: floatSlow 3.2s ease-in-out infinite;
+        }
+        /* 擬真籌碼圓環紋路 */
+        .poker-chip-ring {
+            border: 3px dashed rgba(255, 255, 255, 0.75);
+        }
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+    </head>
+
+
+<body class="h-[100dvh] w-screen overflow-hidden flex flex-col select-none relative">
+
+    <!-- 背景裝飾用撲克花色浮水印貼圖 -->
+    <div class="pointer-events-none fixed inset-0 overflow-hidden z-0 opacity-15">
+        <div class="absolute -top-4 -left-4 text-7xl text-rose-500 rotate-12">♥️</div>
+        <div class="absolute top-1/3 -right-6 text-8xl text-slate-800 -rotate-12">♠️</div>
+        <div class="absolute bottom-24 -left-6 text-7xl text-amber-500 rotate-45">♦️</div>
+        <div class="absolute bottom-1/3 right-8 text-6xl text-emerald-600 -rotate-12">♣️</div>
+    </div>
+
+    <!-- 頂部繽紛撲克街機風狀態列 -->
+    <header class="shrink-0 bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-700 text-white px-3.5 py-2.5 border-b-4 border-slate-900 shadow-lg z-20 relative overflow-hidden">
+        <div class="max-w-xl mx-auto flex items-center justify-between relative z-10">
+            <div class="flex items-center gap-2.5">
+                <!-- 活潑雙A撲克牌 SVG 貼圖圖示 -->
+                <div class="relative w-12 h-11 shrink-0 sticker-float">
+                    <svg viewBox="0 0 68 60" class="w-full h-full drop-shadow">
+                        <!-- 後方紅心A -->
+                        <g transform="rotate(-12 24 30)">
+                            <rect x="4" y="6" width="34" height="46" rx="6" fill="#ffffff" stroke="#1e293b" stroke-width="3"></rect>
+                            <text x="10" y="21" font-family="Arial, sans-serif" font-weight="900" font-size="13" fill="#e11d48">A</text>
+                            <path d="M21 26 C21 23, 15 21, 15 26 C15 30, 21 34, 21 37 C21 34, 27 30, 27 26 C27 21, 21 23, 21 26 Z" fill="#e11d48"></path>
+                        </g>
+                        <!-- 前方黑桃A -->
+                        <g transform="rotate(10 44 30)">
+                            <rect x="26" y="6" width="34" height="46" rx="6" fill="#fef08a" stroke="#1e293b" stroke-width="3"></rect>
+                            <text x="32" y="21" font-family="Arial, sans-serif" font-weight="900" font-size="13" fill="#0f172a">A</text>
+                            <text x="36" y="41" font-size="18">♠️</text>
+                        </g>
+                    </svg>
+                </div>
+                <div>
+                    <div class="flex items-center gap-1.5">
+                        <h1 class="font-black text-base tracking-tight leading-none text-yellow-300 drop-shadow-[0_2px_0_rgba(0,0,0,0.6)]">撲克記帳王</h1>
+                        <span class="text-[10px] font-black bg-lime-400 text-slate-900 px-2 py-0.5 rounded-full border border-slate-900 shadow-sm">自動存檔</span>
+                    </div>
+                    <p class="text-xs font-extrabold text-white mt-0.5 drop-shadow" id="header-summary-bar">總損益：$0 (0 場已自動存檔)</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-1.5">
+                <button onclick="loadDemoData()" class="btn-pop px-2.5 py-1.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-black text-xs border-2 border-slate-900 flex items-center gap-1" title="載入範例資料">
+                    <span>🎰 範例</span>
+                </button>
+                <button onclick="openAndroidInstallModal()" class="btn-pop px-2.5 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-400 text-white font-black text-xs border-2 border-slate-900 flex items-center gap-1">
+                    <i class="fa-brands fa-android text-sm text-lime-300"></i>
+                    <span>裝到手機</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 一頁式主內容容器 -->
+    <main class="flex-1 overflow-y-auto no-scrollbar px-3 py-3 max-w-xl w-full mx-auto relative z-10">
+
+        <!-- ==================== 分頁 1：快速記一筆 (RECORD) ==================== -->
+        <section id="page-RECORD" class="space-y-3 pb-4">
+            
+            <!-- 編輯模式提示橫幅 -->
+            <div id="edit-banner" class="hidden bg-amber-200 border-2 border-slate-900 rounded-2xl px-3.5 py-2 flex items-center justify-between shadow">
+                <span class="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                    <span>✏️ 正在修改舊戰績紀錄</span>
+                </span>
+                <button type="button" onclick="resetForm()" class="btn-pop px-2.5 py-1 rounded-xl bg-rose-500 text-white text-xs font-black border border-slate-900">
+                    取消修改
+                </button>
+            </div>
+
+            <!-- 超大鮮豔雙模式切換：現金桌 vs 錦標賽 (附帶可愛撲克貼圖) -->
+            <div class="grid grid-cols-2 gap-2.5 bg-white p-1.5 rounded-2xl border-3 border-slate-900 shadow-[0_4px_0_#1e293b]">
+                <button type="button" id="tab-btn-CASH" onclick="switchFormType('CASH')" class="btn-pop py-2.5 px-3 rounded-xl text-sm font-black flex items-center justify-center gap-2 cash-active">
+                    <span class="w-6 h-6 rounded-full bg-yellow-400 text-slate-900 poker-chip-ring flex items-center justify-center text-xs font-black shadow">$</span>
+                    <span>現金桌 Cash</span>
+                </button>
+                <button type="button" id="tab-btn-MTT" onclick="switchFormType('MTT')" class="btn-pop py-2.5 px-3 rounded-xl text-sm font-black flex items-center justify-center gap-2 bg-slate-100 text-slate-600 border-2 border-slate-300">
+                    <span class="text-base">🏆</span>
+                    <span>錦標賽 MTT</span>
+                </button>
+            </div>
+
+            <form id="record-form" onsubmit="handleFormSubmit(event)" class="card-pop rounded-3xl p-4 space-y-3.5 relative overflow-hidden">
+                <!-- 右上角裝飾用 DEALER 莊家貼紙 -->
+                <div class="absolute -right-2 -top-2 w-14 h-14 rounded-full bg-gradient-to-br from-yellow-300 to-amber-500 border-2 border-slate-900 flex items-center justify-center rotate-12 shadow pointer-events-none opacity-90">
+                    <span class="text-[9px] font-black text-slate-950 tracking-tighter border border-dashed border-slate-900 rounded-full px-1.5 py-1">DEALER</span>
+                </div>
+
+                <input type="hidden" id="edit-record-id" value="">
+
+                <!-- 1. 地點彩色膠囊快速點選 (預設：華人撲克) -->
+                <div>
+                    <div class="flex items-center justify-between mb-1.5 pr-12">
+                        <label class="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                            <span class="text-base">🏟️</span> 牌局地點
+                        </label>
+                        <button type="button" onclick="switchPage('SETTINGS')" class="text-[11px] font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-200 hover:bg-indigo-100">
+                            ⚙️ 新增/改地點
+                        </button>
+                    </div>
+                    <select id="input-location" class="hidden"><option value="華人撲克">華人撲克</option></select>
+                    <div id="location-chips-container" class="flex flex-wrap gap-2">
+                    <button type="button" onclick="selectLocationChip('華人撲克')" class="btn-pop px-3.5 py-1.5 rounded-xl text-xs font-black border-2 transition bg-indigo-600 border-slate-900 text-white shadow-[0_3px_0_#1e293b] scale-105">
+                        🏟️ 華人撲克
+                    </button>
+                </div>
+                </div>
+
+                <!-- 2A. 現金桌專屬：盲注大小按鈕 (5/5, 5/10, 10/20, 20/40) & 遊玩時數 -->
+                <div id="cash-fields-group" class="space-y-3 pt-2.5 border-t-2 border-dashed border-slate-200">
+                    <div>
+                        <label class="text-xs font-black text-emerald-900 flex items-center gap-1.5 mb-2">
+                            <span class="text-base">🪙</span> 點選盲注大小 (小盲/大盲)
+                        </label>
+                        <select id="input-stakes" class="hidden"><option value="5/5">5/5</option><option value="5/10">5/10</option><option value="10/20">10/20</option><option value="20/40">20/40</option></select>
+                        <div id="stakes-chips-container" class="grid grid-cols-4 gap-2">
+                    <button type="button" onclick="selectStakesChip('5/5')" class="btn-pop py-2 px-2 rounded-2xl text-xs font-mono font-black border-2 border-slate-900 flex flex-col items-center justify-center transition bg-emerald-500 text-white shadow-[0_3px_0_#064e3b] scale-105">
+                        <span class="text-[10px] font-sans opacity-75">🎯 已選</span>
+                        <span class="text-sm">5/5</span>
+                    </button>
+                
+                    <button type="button" onclick="selectStakesChip('5/10')" class="btn-pop py-2 px-2 rounded-2xl text-xs font-mono font-black border-2 border-slate-900 flex flex-col items-center justify-center transition bg-emerald-100 text-slate-900">
+                        <span class="text-[10px] font-sans opacity-75">盲注</span>
+                        <span class="text-sm">5/10</span>
+                    </button>
+                
+                    <button type="button" onclick="selectStakesChip('10/20')" class="btn-pop py-2 px-2 rounded-2xl text-xs font-mono font-black border-2 border-slate-900 flex flex-col items-center justify-center transition bg-amber-100 text-slate-900">
+                        <span class="text-[10px] font-sans opacity-75">盲注</span>
+                        <span class="text-sm">10/20</span>
+                    </button>
+                
+                    <button type="button" onclick="selectStakesChip('20/40')" class="btn-pop py-2 px-2 rounded-2xl text-xs font-mono font-black border-2 border-slate-900 flex flex-col items-center justify-center transition bg-rose-100 text-slate-900">
+                        <span class="text-[10px] font-sans opacity-75">盲注</span>
+                        <span class="text-sm">20/40</span>
+                    </button>
+                </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2.5 items-center bg-emerald-100/80 p-2.5 rounded-2xl border-2 border-emerald-600/40">
+                        <div>
+                            <label class="block text-[11px] font-black text-emerald-950">⏱️ 上桌時數 (小時)</label>
+                            <div class="flex items-center gap-1 mt-1">
+                                <button type="button" onclick="adjustHours(-0.5)" class="btn-pop w-8 h-8 rounded-xl bg-white border-2 border-slate-900 text-slate-900 font-black">-0.5</button>
+                                <input type="number" id="input-cash-hours" step="0.5" min="0.5" max="72" value="4" oninput="syncPreviewCalculation()" class="w-12 text-center bg-white border-2 border-slate-900 rounded-xl py-1 text-sm font-mono font-black text-slate-900 outline-none">
+                                <button type="button" onclick="adjustHours(0.5)" class="btn-pop w-8 h-8 rounded-xl bg-emerald-500 border-2 border-slate-900 text-white font-black">+0.5</button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-black text-emerald-950">📅 打牌日期時間</label>
+                            <input type="datetime-local" id="input-datetime" required="" class="mt-1 w-full bg-white border-2 border-slate-900 rounded-xl px-2 py-1 text-xs font-bold text-slate-900 outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2B. 錦標賽專屬：賽事金額快速套用 & 買入組數 (Bullets) -->
+                <div id="mtt-fields-group" class="hidden space-y-3 pt-2.5 border-t-2 border-dashed border-slate-200">
+                    <div>
+                        <label class="text-xs font-black text-orange-900 flex items-center gap-1.5 mb-2">
+                            <span class="text-base">👑</span> 點選常見錦標賽 (自動填報名費)
+                        </label>
+                        <div id="mtt-chips-container" class="flex flex-wrap gap-1.5 mb-2">
+                <button type="button" onclick="applyMttTier('$600 限時賽', 600)" class="btn-pop px-3 py-1.5 rounded-xl text-xs font-black border-2 bg-gradient-to-r from-yellow-200 to-orange-200 border-slate-900 text-slate-900">
+                    🏆 $600 限時賽
+                </button>
+            
+                <button type="button" onclick="applyMttTier('$1,200 日常賽', 1200)" class="btn-pop px-3 py-1.5 rounded-xl text-xs font-black border-2 bg-gradient-to-r from-yellow-200 to-orange-200 border-slate-900 text-slate-900">
+                    🏆 $1,200 日常賽
+                </button>
+            
+                <button type="button" onclick="applyMttTier('$2,500 錦標賽', 2500)" class="btn-pop px-3 py-1.5 rounded-xl text-xs font-black border-2 bg-gradient-to-r from-yellow-200 to-orange-200 border-slate-900 text-slate-900">
+                    🏆 $2,500 錦標賽
+                </button>
+            
+                <button type="button" onclick="applyMttTier('$3,400 深籌賽', 3400)" class="btn-pop px-3 py-1.5 rounded-xl text-xs font-black border-2 bg-gradient-to-r from-yellow-200 to-orange-200 border-slate-900 text-slate-900">
+                    🏆 $3,400 深籌賽
+                </button>
+            
+                <button type="button" onclick="applyMttTier('$6,600 主賽事', 6600)" class="btn-pop px-3 py-1.5 rounded-xl text-xs font-black border-2 bg-gradient-to-r from-yellow-200 to-orange-200 border-slate-900 text-slate-900">
+                    🏆 $6,600 主賽事
+                </button>
+            </div>
+                        <input type="text" id="input-mtt-name" placeholder="或手動輸入比賽名稱 (例: 華人撲克開幕賽)" class="w-full bg-orange-50 border-2 border-slate-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 outline-none">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2.5 bg-orange-100/80 p-2.5 rounded-2xl border-2 border-orange-500/40">
+                        <div>
+                            <label class="block text-[11px] font-black text-orange-950">🔫 買入次數 (第幾發)</label>
+                            <div class="flex items-center gap-1 mt-1">
+                                <button type="button" onclick="adjustBullets(-1)" class="btn-pop w-8 h-8 rounded-xl bg-white border-2 border-slate-900 text-slate-900 font-black">-</button>
+                                <input type="number" id="input-mtt-bullets" min="1" max="20" value="1" oninput="recalcMttBuyinFromUnit()" class="w-12 text-center bg-white border-2 border-slate-900 rounded-xl py-1 text-sm font-mono font-black text-slate-900 outline-none">
+                                <button type="button" onclick="adjustBullets(1)" class="btn-pop w-8 h-8 rounded-xl bg-orange-500 border-2 border-slate-900 text-white font-black">+</button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-black text-orange-950">⏱️ 比賽時數 (小時)</label>
+                            <input type="number" id="input-mtt-hours" step="0.5" min="0" max="72" value="3.5" class="mt-1 w-full bg-white border-2 border-slate-900 rounded-xl px-2.5 py-1 text-sm font-mono font-black text-slate-900 outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. 買入金額與最後損益區 -->
+                <div class="pt-2.5 border-t-2 border-dashed border-slate-200 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-black text-slate-900 flex items-center gap-1">
+                            <span class="text-base">💰</span> 買入與最後損益
+                        </span>
+                        <div class="inline-flex rounded-xl bg-slate-200 p-0.5 border-2 border-slate-900 text-[11px]">
+                            <button type="button" id="calc-mode-cashout" onclick="setCalcMode('CASHOUT')" class="px-2.5 py-1 rounded-lg bg-indigo-600 text-white font-black transition">
+                                算碼量/獎金
+                            </button>
+                            <button type="button" id="calc-mode-direct" onclick="setCalcMode('DIRECT')" class="px-2.5 py-1 rounded-lg text-slate-700 font-black transition">
+                                直接填輸贏
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <!-- 總買入 -->
+                        <div class="bg-amber-50 p-2.5 rounded-2xl border-2 border-slate-900 shadow-[0_3px_0_#1e293b]">
+                            <label class="block text-[11px] font-black text-amber-900" id="label-buyin">📥 總買入金額</label>
+                            <div class="relative mt-0.5">
+                                <span class="absolute left-0 top-0.5 text-amber-600 font-mono font-black text-lg">$</span>
+                                <input type="number" id="input-buyin" required="" min="0" step="any" placeholder="0" oninput="handleMoneySync('buyin')" class="w-full bg-transparent pl-4 py-0.5 text-xl font-mono font-black text-slate-950 outline-none">
+                            </div>
+                        </div>
+
+                        <!-- 結算碼量 / 獎金 -->
+                        <div id="cashout-input-wrapper" class="bg-emerald-50 p-2.5 rounded-2xl border-2 border-slate-900 shadow-[0_3px_0_#1e293b]">
+                            <label class="block text-[11px] font-black text-emerald-900" id="label-cashout">📤 最終結算碼量</label>
+                            <div class="relative mt-0.5">
+                                <span class="absolute left-0 top-0.5 text-emerald-600 font-mono font-black text-lg">$</span>
+                                <input type="number" id="input-cashout" min="0" step="any" placeholder="0" oninput="handleMoneySync('cashout')" class="w-full bg-transparent pl-4 py-0.5 text-xl font-mono font-black text-emerald-950 outline-none">
+                            </div>
+                        </div>
+
+                        <!-- 直接填淨損益 -->
+                        <div id="direct-profit-wrapper" class="hidden bg-pink-50 p-2.5 rounded-2xl border-2 border-slate-900 shadow-[0_3px_0_#1e293b]">
+                            <label class="block text-[11px] font-black text-pink-900">⚡ 最後淨輸贏 (可負數)</label>
+                            <div class="relative mt-0.5">
+                                <span class="absolute left-0 top-0.5 text-pink-600 font-mono font-black text-lg">$</span>
+                                <input type="number" id="input-net-profit" step="any" placeholder="例: 1500 或 -500" oninput="handleMoneySync('profit')" class="w-full bg-transparent pl-4 py-0.5 text-xl font-mono font-black text-slate-950 outline-none">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 擬真彩色籌碼買入快捷鍵 (配合 5/5 ~ 20/40 級別常用買入) -->
+                    <div class="space-y-1">
+                        <span class="text-[11px] font-black text-slate-600 block">🎯 點籌碼快速帶入買入金額：</span>
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            <button type="button" onclick="quickSetBuyin(500)" class="btn-pop px-2.5 py-1 text-xs font-mono font-black rounded-full bg-sky-500 text-white border-2 border-slate-900 flex items-center gap-1">
+                                <span class="w-2 h-2 rounded-full bg-white"></span>$500
+                            </button>
+                            <button type="button" onclick="quickSetBuyin(1000)" class="btn-pop px-2.5 py-1 text-xs font-mono font-black rounded-full bg-emerald-500 text-white border-2 border-slate-900 flex items-center gap-1">
+                                <span class="w-2 h-2 rounded-full bg-white"></span>$1,000
+                            </button>
+                            <button type="button" onclick="quickSetBuyin(2000)" class="btn-pop px-2.5 py-1 text-xs font-mono font-black rounded-full bg-amber-400 text-slate-950 border-2 border-slate-900 flex items-center gap-1">
+                                <span class="w-2 h-2 rounded-full bg-slate-900"></span>$2,000
+                            </button>
+                            <button type="button" onclick="quickSetBuyin(3000)" class="btn-pop px-2.5 py-1 text-xs font-mono font-black rounded-full bg-rose-500 text-white border-2 border-slate-900 flex items-center gap-1">
+                                <span class="w-2 h-2 rounded-full bg-white"></span>$3,000
+                            </button>
+                            <button type="button" onclick="quickSetBuyin(5000)" class="btn-pop px-2.5 py-1 text-xs font-mono font-black rounded-full bg-purple-600 text-white border-2 border-slate-900 flex items-center gap-1">
+                                <span class="w-2 h-2 rounded-full bg-yellow-300"></span>$5,000
+                            </button>
+                            <button type="button" id="btn-mtt-bust" onclick="quickBustOut()" class="hidden btn-pop px-2.5 py-1 text-xs font-black rounded-full bg-slate-900 text-yellow-300 border-2 border-rose-500">
+                                💥 沒進錢圈 ($0)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. 簡短備註與即時損益預覽列 -->
+                <div class="flex items-center gap-2 pt-1">
+                    <input type="text" id="input-note" placeholder="🃏 備註關鍵手牌 (例: AA 抓雞成功)..." class="flex-1 bg-slate-100 border-2 border-slate-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 outline-none">
+                    <div class="px-3 py-1.5 rounded-xl bg-slate-900 text-white text-right shrink-0 border-2 border-slate-900">
+                        <span id="preview-subtext" class="block text-[10px] text-amber-300 font-mono font-bold">時薪 $0/h</span>
+                        <span id="preview-profit-badge" class="font-mono text-sm font-black text-slate-200">$0</span>
+                    </div>
+                </div>
+
+                <!-- 超大鮮豔儲存按鈕 -->
+                <button type="submit" id="submit-btn" class="btn-pop w-full py-3.5 px-4 rounded-2xl font-black text-base text-slate-950 bg-gradient-to-r from-yellow-300 via-amber-400 to-orange-400 border-2 border-slate-900 shadow-[0_5px_0_#1e293b] flex items-center justify-center gap-2">
+                    <span class="text-xl">🎰</span>
+                    <span>收池！儲存這筆戰績</span>
+                </button>
+            </form>
+        </section>
+
+        <!-- ==================== 分頁 2：圖表與數據分析 (CHART) ==================== -->
+        <section id="page-CHART" class="hidden space-y-3 pb-4">
+            
+            <!-- 自由指定檢視範圍：全部總覽 / 僅看現金桌 / 僅看錦標賽 -->
+            <div class="grid grid-cols-3 gap-2 bg-white p-1.5 rounded-2xl border-3 border-slate-900 shadow-[0_4px_0_#1e293b]">
+                <button id="filter-ALL" onclick="setGlobalFilter('ALL')" class="btn-pop py-2 rounded-xl text-xs font-black flex items-center justify-center gap-1 bg-indigo-600 text-white border-2 border-slate-900">
+                    <span>🃏 全部總獲利</span>
+                </button>
+                <button id="filter-CASH" onclick="setGlobalFilter('CASH')" class="btn-pop py-2 rounded-xl text-xs font-black flex items-center justify-center gap-1 text-slate-700 bg-slate-100 border-2 border-transparent">
+                    <span>🪙 僅看現金桌</span>
+                </button>
+                <button id="filter-MTT" onclick="setGlobalFilter('MTT')" class="btn-pop py-2 rounded-xl text-xs font-black flex items-center justify-center gap-1 text-slate-700 bg-slate-100 border-2 border-transparent">
+                    <span>🏆 僅看錦標賽</span>
+                </button>
+            </div>
+
+            <!-- 4 格繽紛重點撲克數據卡 -->
+            <div class="grid grid-cols-2 gap-2.5">
+                <div class="rounded-2xl p-3.5 bg-gradient-to-br from-emerald-500 to-teal-600 text-white border-3 border-slate-900 shadow-[0_5px_0_#1e293b] relative overflow-hidden">
+                    <span class="absolute -right-2 -bottom-3 text-5xl opacity-25 pointer-events-none">💰</span>
+                    <div class="flex items-center justify-between text-xs font-black text-yellow-200">
+                        <span id="kpi-profit-title">累積總淨利</span>
+                        <span>♠️</span>
+                    </div>
+                    <div id="kpi-net-profit" class="font-mono text-2xl font-black mt-1 drop-shadow">$0</div>
+                    <div class="mt-1 flex justify-between text-[11px] text-white font-bold">
+                        <span id="kpi-sessions-count">共 0 場</span>
+                        <span id="kpi-win-rate">勝率 0%</span>
+                    </div>
+                </div>
+
+                <div class="rounded-2xl p-3.5 bg-gradient-to-br from-sky-500 to-indigo-600 text-white border-3 border-slate-900 shadow-[0_5px_0_#1e293b] relative overflow-hidden">
+                    <span class="absolute -right-2 -bottom-3 text-5xl opacity-25 pointer-events-none">⏱️</span>
+                    <div class="flex items-center justify-between text-xs font-black text-yellow-200">
+                        <span>現金桌平均時薪</span>
+                        <span>♥️</span>
+                    </div>
+                    <div id="kpi-cash-hourly" class="font-mono text-2xl font-black mt-1 drop-shadow">$0/h</div>
+                    <div class="mt-1 flex justify-between text-[11px] text-white font-bold">
+                        <span id="kpi-cash-hours">0.0 hr</span>
+                        <span id="kpi-cash-profit">$0</span>
+                    </div>
+                </div>
+
+                <div class="rounded-2xl p-3.5 bg-gradient-to-br from-orange-500 to-rose-600 text-white border-3 border-slate-900 shadow-[0_5px_0_#1e293b] relative overflow-hidden">
+                    <span class="absolute -right-2 -bottom-3 text-5xl opacity-25 pointer-events-none">🏆</span>
+                    <div class="flex items-center justify-between text-xs font-black text-yellow-200">
+                        <span>錦標賽 ROI 投報</span>
+                        <span>♦️</span>
+                    </div>
+                    <div id="kpi-mtt-roi" class="font-mono text-2xl font-black mt-1 drop-shadow">+0.0%</div>
+                    <div class="mt-1 flex justify-between text-[11px] text-white font-bold">
+                        <span id="kpi-mtt-itm">錢圈 0%</span>
+                        <span id="kpi-mtt-profit">$0</span>
+                    </div>
+                </div>
+
+                <div class="rounded-2xl p-3.5 bg-gradient-to-br from-purple-600 to-fuchsia-600 text-white border-3 border-slate-900 shadow-[0_5px_0_#1e293b] relative overflow-hidden">
+                    <span class="absolute -right-2 -bottom-3 text-5xl opacity-25 pointer-events-none">🎰</span>
+                    <div class="flex items-center justify-between text-xs font-black text-yellow-200">
+                        <span>總買入 &amp; 場均</span>
+                        <span>♣️</span>
+                    </div>
+                    <div id="kpi-total-buyin" class="font-mono text-2xl font-black mt-1 drop-shadow">$0</div>
+                    <div class="mt-1 flex justify-between text-[11px] text-white font-bold">
+                        <span>總投入</span>
+                        <span id="kpi-avg-profit">場均 $0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 資金走勢圖卡片 -->
+            <div class="card-pop rounded-3xl p-4">
+                <div class="flex items-center justify-between gap-2 mb-3 flex-wrap">
+                    <h2 class="font-black text-sm text-slate-900 flex items-center gap-1.5">
+                        <span class="text-lg">📈</span> 撲克資金走勢圖
+                    </h2>
+                    <div class="inline-flex bg-slate-100 p-1 rounded-xl border-2 border-slate-900 gap-1">
+                        <button type="button" id="chart-mode-combined" onclick="setChartDisplayMode('COMBINED')" class="px-2.5 py-1 rounded-lg text-[11px] font-black bg-indigo-600 text-white">
+                            合併曲線
+                        </button>
+                        <button type="button" id="chart-mode-split" onclick="setChartDisplayMode('SPLIT')" class="px-2.5 py-1 rounded-lg text-[11px] font-black text-slate-700">
+                            現金vs比賽
+                        </button>
+                        <button type="button" id="chart-mode-bars" onclick="setChartDisplayMode('BARS')" class="px-2.5 py-1 rounded-lg text-[11px] font-black text-slate-700">
+                            單場柱狀
+                        </button>
+                    </div>
+                </div>
+                <div class="relative w-full h-56">
+                    <canvas id="bankrollChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 現金桌 vs 錦標賽 獨立數據對比小卡 -->
+            <div class="grid grid-cols-2 gap-2.5">
+                <div class="card-pop rounded-2xl p-3 bg-emerald-50/90">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-black text-xs text-emerald-950">🪙 現金桌戰績</span>
+                        <span id="stat-cash-count" class="text-[10px] font-black bg-emerald-300 text-slate-900 px-2 py-0.5 rounded-full border border-slate-900">0 場</span>
+                    </div>
+                    <div id="stat-cash-net" class="font-mono text-base font-black text-emerald-700">$0</div>
+                    <div class="text-[11px] text-slate-700 font-bold mt-1 flex justify-between">
+                        <span id="stat-cash-hourly">時薪 $0/h</span>
+                        <span id="stat-cash-winrate">勝率 0%</span>
+                    </div>
+                    <div id="stat-cash-hours" class="text-[10px] text-slate-500 font-bold mt-0.5">累積上桌 0.0 小時</div>
+                </div>
+
+                <div class="card-pop rounded-2xl p-3 bg-orange-50/90">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-black text-xs text-orange-950">🏆 錦標賽戰績</span>
+                        <span id="stat-mtt-count" class="text-[10px] font-black bg-orange-300 text-slate-900 px-2 py-0.5 rounded-full border border-slate-900">0 場</span>
+                    </div>
+                    <div id="stat-mtt-net" class="font-mono text-base font-black text-orange-700">$0</div>
+                    <div class="text-[11px] text-slate-700 font-bold mt-1 flex justify-between">
+                        <span id="stat-mtt-roi">ROI +0.0%</span>
+                        <span id="stat-mtt-itm">ITM 0%</span>
+                    </div>
+                    <div id="stat-mtt-abi" class="text-[10px] text-slate-500 font-bold mt-0.5">平均買入 $0</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 分頁 3：歷史戰績列表 (HISTORY) ==================== -->
+        <section id="page-HISTORY" class="hidden space-y-3 pb-4">
+            <div class="card-pop rounded-2xl p-3 flex items-center gap-2">
+                <select id="history-location-filter" onchange="renderAll()" class="bg-yellow-200 border-2 border-slate-900 rounded-xl px-2.5 py-2 text-xs font-black text-slate-900 outline-none"><option value="ALL">全部地點 (1)</option><option value="華人撲克">華人撲克</option></select>
+                <div class="relative flex-1">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500 text-xs"></i>
+                    <input type="text" id="history-search" oninput="renderAll()" placeholder="搜尋盲注、比賽或手牌筆記..." class="w-full bg-slate-100 border-2 border-slate-900 rounded-xl pl-8 pr-3 py-1.5 text-xs font-bold text-slate-800 outline-none">
+                </div>
+            </div>
+
+            <!-- 手機友善卡片式歷史清單 -->
+            <div id="history-cards-container" class="space-y-2.5"></div>
+
+            <!-- 空狀態提示 -->
+            <div id="empty-history-state" class="card-pop rounded-3xl py-10 px-4 text-center space-y-3">
+                <div class="text-5xl">🃏</div>
+                <div class="text-slate-900 font-black text-base">目前還沒有牌局紀錄喔！</div>
+                <p class="text-xs font-bold text-slate-600">點擊下方「記一筆」輸入戰績，或點右上角「🎰 範例」一鍵看效果。</p>
+            </div>
+        </section>
+
+        <!-- ==================== 分頁 4：設定、安裝 App 與備份 (SETTINGS) ==================== -->
+        <section id="page-SETTINGS" class="hidden space-y-3.5 pb-4">
+            
+            <!-- 專為 Android 與手機設計的雙重安裝方案卡片 -->
+            <div class="card-pop rounded-3xl p-4 bg-gradient-to-br from-emerald-500 via-teal-600 to-indigo-700 text-white space-y-3">
+                <div class="flex items-center justify-between">
+                    <h3 class="font-black text-base flex items-center gap-2 text-yellow-300 drop-shadow">
+                        <i class="fa-brands fa-android text-2xl text-lime-300"></i>
+                        <span>Android 手機安裝與離線下載</span>
+                    </h3>
+                </div>
+                <p class="text-xs text-white font-bold leading-relaxed bg-black/25 p-3 rounded-2xl border border-white/20">
+                    💡 為什麼點「安裝」沒反應？因為您目前在預覽框內瀏覽！請使用以下**最穩定的 2 個方法**把 App 裝進安卓手機：
+                </p>
+
+                <!-- 方法 1：一鍵下載獨立 App 檔到手機 -->
+                <div class="bg-white text-slate-900 p-3.5 rounded-2xl border-2 border-slate-900 space-y-2 shadow">
+                    <div class="font-black text-xs text-rose-600 flex items-center gap-1.5">
+                        <span class="px-2 py-0.5 bg-rose-100 rounded-md border border-rose-300">最推薦！100% 成功</span>
+                        <span>方法一：下載獨立 App 檔案到手機</span>
+                    </div>
+                    <p class="text-[11px] font-bold text-slate-600">
+                        點擊下方按鈕，會直接將整個「撲克記帳王 App (`撲克記帳王App.html`)」連同你目前的設定下載到手機裡。在手機「下載」資料夾點開它，就能在 Chrome 點右上角「⋮」➔「加到主畫面」永久離線使用！
+                    </p>
+                    <button type="button" onclick="downloadStandaloneHtmlApp()" class="btn-pop w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-400 text-slate-950 font-black text-xs border-2 border-slate-900 flex items-center justify-center gap-2 shadow">
+                        <i class="fa-solid fa-cloud-arrow-down text-base"></i>
+                        <span>立即下載「撲克記帳王 App」到手機</span>
+                    </button>
+                </div>
+
+                <!-- 方法 2：原生 PWA 安裝或 Chrome 選單 -->
+                <div class="bg-black/30 p-3 rounded-2xl border border-white/20 space-y-2 text-xs">
+                    <div class="font-black text-lime-300">🤖 方法二：在 Chrome 瀏覽器直接加到桌面</div>
+                    <ol class="list-decimal list-inside space-y-1 text-[11px] font-bold text-indigo-50">
+                        <li>點擊手機 Chrome 右上角的「<strong class="text-yellow-300">⋮ (三個點選單)</strong>」</li>
+                        <li>點選「<strong class="text-yellow-300">加到主畫面</strong>」或「<strong class="text-yellow-300">安裝應用程式</strong>」</li>
+                        <li>桌面就會出現「♠️ 撲克記帳王」圖示，點開即全螢幕運作！</li>
+                    </ol>
+                    <button id="pwa-install-btn" onclick="triggerPwaInstall()" class="btn-pop w-full py-2 rounded-xl bg-lime-400 text-slate-950 font-black text-xs border-2 border-slate-900 shadow">
+                        🚀 觸發瀏覽器原生安裝提示
+                    </button>
+                </div>
+            </div>
+
+            <!-- 自訂常用地點、現金桌盲注、常見錦標賽 -->
+            <div class="card-pop rounded-3xl p-4 space-y-4">
+                <div class="flex items-center justify-between">
+                    <h3 class="font-black text-sm text-slate-900 flex items-center gap-1.5">
+                        <span class="text-lg">🎛️</span> 自訂地點與盲注按鈕
+                    </h3>
+                    <button type="button" onclick="restoreDefaultPresets()" class="btn-pop px-2.5 py-1 rounded-xl bg-amber-100 text-amber-900 border border-amber-400 text-[11px] font-black">
+                        🔄 恢復預設(華人撲克 &amp; 5/5~20/40)
+                    </button>
+                </div>
+
+                <!-- 1. 地點 -->
+                <div class="space-y-2">
+                    <label class="text-xs font-black text-indigo-950 block">🏟️ 常用現場地點 / 協會 (預設：華人撲克)</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="new-location-input" placeholder="輸入新地點 (例: 朋友家、6bet)" class="flex-1 bg-slate-100 border-2 border-slate-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 outline-none">
+                        <button onclick="addPresetItem('location')" class="btn-pop px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-black border-2 border-slate-900">新增</button>
+                    </div>
+                    <div id="modal-location-list" class="flex flex-wrap gap-1.5"></div>
+                </div>
+
+                <!-- 2. 盲注 -->
+                <div class="space-y-2 pt-3 border-t-2 border-dashed border-slate-200">
+                    <label class="text-xs font-black text-emerald-950 block">🪙 常用現金桌盲注 (預設：5/5、5/10、10/20、20/40)</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="new-stakes-input" placeholder="例如: 50/100" class="flex-1 bg-slate-100 border-2 border-slate-900 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-800 outline-none">
+                        <button onclick="addPresetItem('stakes')" class="btn-pop px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-black border-2 border-slate-900">新增</button>
+                    </div>
+                    <div id="modal-stakes-list" class="flex flex-wrap gap-1.5"></div>
+                </div>
+
+                <!-- 3. 錦標賽 -->
+                <div class="space-y-2 pt-3 border-t-2 border-dashed border-slate-200">
+                    <label class="text-xs font-black text-orange-950 block">🏆 常用錦標賽名稱與報名費</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <input type="text" id="new-mtt-label" placeholder="名稱 (例: $1,200 限時賽)" class="col-span-2 bg-slate-100 border-2 border-slate-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 outline-none">
+                        <input type="number" id="new-mtt-buyin" placeholder="金額 1200" class="bg-slate-100 border-2 border-slate-900 rounded-xl px-2.5 py-2 text-xs font-mono font-bold text-slate-800 outline-none">
+                    </div>
+                    <button onclick="addPresetItem('mttTier')" class="btn-pop w-full py-2 bg-orange-500 text-white rounded-xl text-xs font-black border-2 border-slate-900">+ 新增常用比賽標籤</button>
+                    <div id="modal-mtt-list" class="flex flex-wrap gap-1.5"></div>
+                </div>
+            </div>
+
+            <!-- 資料備份與匯出匯入卡片 -->
+            <div class="card-pop rounded-3xl p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                    <h3 class="font-black text-sm text-slate-900 flex items-center gap-1.5">
+                        <span class="text-lg">💾</span> 戰績資料備份與還原
+                    </h3>
+                    <button onclick="downloadJsonFile()" class="btn-pop px-3 py-1.5 rounded-xl bg-sky-400 text-slate-950 text-xs font-black border-2 border-slate-900 flex items-center gap-1">
+                        <i class="fa-solid fa-file-arrow-down"></i> 下載資料檔
+                    </button>
+                </div>
+                <textarea id="backup-json-area" rows="3" placeholder="在此貼上備份碼可還原資料..." class="w-full bg-slate-100 border-2 border-slate-900 rounded-2xl p-2.5 text-[11px] font-mono text-slate-700 outline-none"></textarea>
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex gap-1.5">
+                        <button onclick="copyBackupJson()" class="btn-pop px-3 py-2 rounded-xl bg-indigo-600 text-white text-xs font-black border-2 border-slate-900">
+                            📋 複製備份碼
+                        </button>
+                        <button onclick="importBackupJson()" class="btn-pop px-3 py-2 rounded-xl bg-emerald-600 text-white text-xs font-black border-2 border-slate-900">
+                            📥 貼上還原
+                        </button>
+                    </div>
+                    <button onclick="clearAllRecordsConfirm()" class="btn-pop px-3 py-2 rounded-xl bg-rose-100 text-rose-700 text-xs font-black border-2 border-rose-300">
+                        清空紀錄
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 底部鮮豔一頁式跳選導覽列 (App Tab Bar) -->
+    <nav class="shrink-0 bg-white border-t-4 border-slate-900 px-3 py-2 z-30 shadow-2xl">
+        <div class="max-w-xl mx-auto grid grid-cols-4 gap-2">
+            <button id="nav-btn-RECORD" onclick="switchPage('RECORD')" class="btn-pop py-2 px-2 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-slate-600 font-black nav-active">
+                <span class="text-lg leading-none">🃏</span>
+                <span class="text-[11px]">記一筆</span>
+            </button>
+            <button id="nav-btn-CHART" onclick="switchPage('CHART')" class="btn-pop py-2 px-2 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-slate-600 font-black">
+                <span class="text-lg leading-none">📊</span>
+                <span class="text-[11px]">圖表分析</span>
+            </button>
+            <button id="nav-btn-HISTORY" onclick="switchPage('HISTORY')" class="btn-pop py-2 px-2 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-slate-600 font-black">
+                <div class="relative">
+                    <span class="text-lg leading-none">📜</span>
+                    <span id="nav-history-badge" class="absolute -top-1.5 -right-4 bg-rose-500 text-white text-[10px] font-mono font-black px-1.5 rounded-full border border-slate-900">0</span>
+                </div>
+                <span class="text-[11px]">歷史戰績</span>
+            </button>
+            <button id="nav-btn-SETTINGS" onclick="switchPage('SETTINGS')" class="btn-pop py-2 px-2 rounded-2xl flex flex-col items-center justify-center gap-0.5 text-slate-600 font-black">
+                <span class="text-lg leading-none">📲</span>
+                <span class="text-[11px]">安裝/設定</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Android 安裝教學與一鍵下載彈窗 Modal -->
+    <div id="android-install-modal" class="fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="card-pop rounded-3xl max-w-sm w-full p-5 bg-white space-y-3.5 relative animate-bounce-once">
+            <button onclick="closeAndroidInstallModal()" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-slate-200 border-2 border-slate-900 font-black text-slate-900 flex items-center justify-center">✕</button>
+            
+            <div class="flex items-center gap-2.5">
+                <div class="w-12 h-12 rounded-2xl bg-lime-400 border-2 border-slate-900 flex items-center justify-center text-2xl shadow">
+                    🤖
+                </div>
+                <div>
+                    <h3 class="font-black text-base text-slate-900">安裝到 Android 手機</h3>
+                    <p class="text-xs font-bold text-emerald-700">資料自動保存在手機內不遺失！</p>
+                </div>
+            </div>
+
+            <div class="bg-amber-50 border-2 border-slate-900 rounded-2xl p-3 space-y-2">
+                <div class="text-xs font-black text-slate-900">✨ 方式 A：一鍵下載獨立 App 檔（最推薦）</div>
+                <p class="text-[11px] font-bold text-slate-600 leading-relaxed">
+                    點擊下方按鈕把 <code class="bg-white px-1 rounded border">撲克記帳王App.html</code> 下載到手機，打開後就能離線記帳，也能從 Chrome 右上角「⋮」選「加到主畫面」！
+                </p>
+                <button onclick="downloadStandaloneHtmlApp()" class="btn-pop w-full py-2.5 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-400 text-slate-950 font-black text-xs border-2 border-slate-900 shadow flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-download"></i>
+                    <span>點此下載 App 檔案到手機</span>
+                </button>
+            </div>
+
+            <div class="bg-indigo-50 border-2 border-slate-900 rounded-2xl p-3 space-y-1.5 text-xs">
+                <div class="font-black text-indigo-950">✨ 方式 B：用 Chrome 選單「加到主畫面」</div>
+                <p class="text-[11px] font-bold text-slate-700 leading-relaxed">
+                    1. 點擊手機瀏覽器右上角「<strong>⋮</strong>」<br>
+                    2. 選擇「<strong>安裝應用程式</strong>」或「<strong>加到主畫面</strong>」
+                </p>
+            </div>
+
+            <button onclick="closeAndroidInstallModal()" class="btn-pop w-full py-2 rounded-xl bg-slate-900 text-white font-black text-xs">
+                我知道了！開始記帳
+            </button>
+        </div>
+    </div>
+
+    <!-- 輕量提示 Toast -->
+    <div id="toast-container" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none w-11/12 max-w-sm"></div>
+
+    <script>
+        // 升級版儲存 Key (V2 預設載入 5/5, 5/10, 10/20, 20/40 與 華人撲克)
+        const STORAGE_KEY_RECORDS = 'POKER_PRO_RECORDS_V2';
+        const STORAGE_KEY_PRESETS = 'POKER_PRO_PRESETS_V2';
+
+        // 依使用者要求設定的預設值：地點只預設「華人撲克」，盲注預設「5/5, 5/10, 10/20, 20/40」
+        const DEFAULT_PRESETS = {
+            locations: ['華人撲克'],
+            stakes: ['5/5', '5/10', '10/20', '20/40'],
+            mttTiers: [
+                { label: '$600 限時賽', buyin: 600 },
+                { label: '$1,200 日常賽', buyin: 1200 },
+                { label: '$2,500 錦標賽', buyin: 2500 },
+                { label: '$3,400 深籌賽', buyin: 3400 },
+                { label: '$6,600 主賽事', buyin: 6600 }
+            ]
+        };
+
+        // 鮮豔卡通標籤配色池
+        const CHIP_COLORS = [
+            'bg-yellow-200 text-slate-900 border-slate-900',
+            'bg-pink-200 text-slate-900 border-slate-900',
+            'bg-emerald-200 text-slate-900 border-slate-900',
+            'bg-sky-200 text-slate-900 border-slate-900',
+            'bg-purple-200 text-slate-900 border-slate-900'
+        ];
+
+        // 全域狀態
+        let records = [];
+        let presets = JSON.parse(JSON.stringify(DEFAULT_PRESETS));
+        let currentPage = 'RECORD';        // 'RECORD' | 'CHART' | 'HISTORY' | 'SETTINGS'
+        let currentFormType = 'CASH';      // 'CASH' | 'MTT'
+        let currentCalcMode = 'CASHOUT';   // 'CASHOUT' | 'DIRECT'
+        let globalFilter = 'ALL';          // 'ALL' | 'CASH' | 'MTT'
+        let chartDisplayMode = 'COMBINED'; // 'COMBINED' | 'SPLIT' | 'BARS'
+        let selectedMttUnitBuyin = 0;
+        let bankrollChartInstance = null;
+        let deferredPwaPrompt = null;
+
+        // 初始化與註冊可安裝 PWA
+        window.onload = function () {
+            setupInstallablePwa();
+            loadFromStorage();
+            setNowToDatetimeInput();
+            renderPresetSelectors();
+            syncPreviewCalculation();
+            renderAll();
+        };
+
+        // 動態產生 PWA Manifest 與 Service Worker
+        function setupInstallablePwa() {
+            try {
+                // 靜態 manifest + service worker（部署於 GitHub Pages）
+                if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+                    navigator.serviceWorker.register('sw.js').catch(() => {});
+                }
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    e.preventDefault();
+                    deferredPwaPrompt = e;
+                });
+            } catch (err) {
+                console.warn('PWA 設定略過:', err);
+            }
+        }
+
+        function openAndroidInstallModal() {
+            if (deferredPwaPrompt) {
+                triggerPwaInstall();
+            } else {
+                document.getElementById('android-install-modal').classList.remove('hidden');
+            }
+        }
+
+        function closeAndroidInstallModal() {
+            document.getElementById('android-install-modal').classList.add('hidden');
+        }
+
+        function triggerPwaInstall() {
+            if (deferredPwaPrompt) {
+                deferredPwaPrompt.prompt();
+                deferredPwaPrompt.userChoice.then(() => {
+                    deferredPwaPrompt = null;
+                    closeAndroidInstallModal();
+                });
+            } else {
+                openAndroidInstallModal();
+            }
+        }
+
+        // 一鍵將整個 App 打包成獨立 HTML 檔案下載到 Android 手機
+        function downloadStandaloneHtmlApp() {
+            try {
+                const htmlContent = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+                const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = '撲克記帳王App.html';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 2000);
+                closeAndroidInstallModal();
+                showToast('📲 已下載「撲克記帳王App.html」！點開即可在手機獨立使用');
+            } catch (e) {
+                showToast('下載失敗，請再試一次', 'info');
+            }
+        }
+
+        function restoreDefaultPresets() {
+            presets = JSON.parse(JSON.stringify(DEFAULT_PRESETS));
+            saveToStorage();
+            renderPresetSelectors();
+            renderModalPresetLists();
+            showToast('✅ 已恢復預設：華人撲克 & 5/5~20/40');
+        }
+
+        // 一頁式分頁跳選器
+        function switchPage(page) {
+            currentPage = page;
+            ['RECORD', 'CHART', 'HISTORY', 'SETTINGS'].forEach(p => {
+                const sec = document.getElementById('page-' + p);
+                const btn = document.getElementById('nav-btn-' + p);
+                if (p === page) {
+                    sec.classList.remove('hidden');
+                    btn.classList.add('nav-active');
+                } else {
+                    sec.classList.add('hidden');
+                    btn.classList.remove('nav-active');
+                }
+            });
+
+            if (page === 'CHART') {
+                setTimeout(() => renderChart(), 50);
+            } else if (page === 'SETTINGS') {
+                renderModalPresetLists();
+                document.getElementById('backup-json-area').value = JSON.stringify({ presets, records }, null, 2);
+            }
+        }
+
+        function loadFromStorage() {
+            try {
+                const savedPresets = localStorage.getItem(STORAGE_KEY_PRESETS);
+                if (savedPresets) {
+                    const parsed = JSON.parse(savedPresets);
+                    if (parsed.locations && parsed.stakes && parsed.mttTiers) {
+                        presets = parsed;
+                    }
+                }
+                const savedRecords = localStorage.getItem(STORAGE_KEY_RECORDS);
+                if (savedRecords) {
+                    records = JSON.parse(savedRecords);
+                } else {
+                    // 向下相容讀取舊版戰績紀錄
+                    const oldRecords = localStorage.getItem('POKER_PRO_RECORDS_V1');
+                    if (oldRecords) records = JSON.parse(oldRecords);
+                }
+            } catch (e) {
+                console.error('載入儲存資料失敗:', e);
+            }
+        }
+
+        function saveToStorage() {
+            try {
+                localStorage.setItem(STORAGE_KEY_PRESETS, JSON.stringify(presets));
+                localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(records));
+            } catch (e) {
+                console.error('儲存資料失敗:', e);
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const colorClass = type === 'success' 
+                ? 'bg-emerald-500 border-slate-900 text-white' 
+                : 'bg-amber-400 border-slate-900 text-slate-950';
+            toast.className = `px-4 py-2.5 rounded-2xl border-3 shadow-[0_4px_0_#1e293b] text-xs font-black flex items-center justify-center gap-2 transition-all duration-300 ${colorClass}`;
+            toast.innerHTML = `<span class="text-base">${type === 'success' ? '🎰' : '🃏'}</span><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 2400);
+        }
+
+        function setNowToDatetimeInput() {
+            const now = new Date();
+            const tzOffset = now.getTimezoneOffset() * 60000;
+            const localISOTime = new Date(now - tzOffset).toISOString().slice(0, 16);
+            document.getElementById('input-datetime').value = localISOTime;
+        }
+
+        function formatMoney(num, showPlus = false) {
+            const n = Number(num) || 0;
+            const sign = n < 0 ? '-' : (showPlus && n > 0 ? '+' : '');
+            return `${sign}$${Math.abs(Math.round(n)).toLocaleString('en-US')}`;
+        }
+
+        function renderPresetSelectors() {
+            const locSelect = document.getElementById('input-location');
+            const stakesSelect = document.getElementById('input-stakes');
+            const historyLocFilter = document.getElementById('history-location-filter');
+
+            const currentLoc = locSelect.value || presets.locations[0];
+            const currentStakes = stakesSelect.value || presets.stakes[0];
+            const currentHistLoc = historyLocFilter.value || 'ALL';
+
+            locSelect.innerHTML = presets.locations.map(loc => `<option value="${loc}">${loc}</option>`).join('');
+            if (presets.locations.includes(currentLoc)) locSelect.value = currentLoc;
+
+            historyLocFilter.innerHTML = `<option value="ALL">全部地點 (${presets.locations.length})</option>` +
+                presets.locations.map(loc => `<option value="${loc}">${loc}</option>`).join('');
+            historyLocFilter.value = currentHistLoc;
+
+            // 鮮豔地點膠囊按鈕
+            const locChips = document.getElementById('location-chips-container');
+            locChips.innerHTML = presets.locations.map((loc, idx) => {
+                const isSelected = locSelect.value === loc;
+                const baseColor = CHIP_COLORS[idx % CHIP_COLORS.length];
+                return `
+                    <button type="button" onclick="selectLocationChip('${loc.replace(/'/g, "\\'")}')"
+                        class="btn-pop px-3.5 py-1.5 rounded-xl text-xs font-black border-2 transition ${isSelected ? 'bg-indigo-600 border-slate-900 text-white shadow-[0_3px_0_#1e293b] scale-105' : baseColor}">
+                        ${isSelected ? '🏟️ ' : '📍 '}${loc}
+                    </button>
+                `;
+            }).join('');
+
+            // 鮮豔現金桌盲注籌碼風按鈕 (5/5, 5/10, 10/20, 20/40)
+            stakesSelect.innerHTML = presets.stakes.map(s => `<option value="${s}">${s}</option>`).join('');
+            if (presets.stakes.includes(currentStakes)) stakesSelect.value = currentStakes;
+
+            const stakesChips = document.getElementById('stakes-chips-container');
+            const stakeColors = ['bg-sky-100', 'bg-emerald-100', 'bg-amber-100', 'bg-rose-100'];
+            stakesChips.innerHTML = presets.stakes.map((s, idx) => {
+                const isSelected = stakesSelect.value === s;
+                const bgIdle = stakeColors[idx % stakeColors.length];
+                return `
+                    <button type="button" onclick="selectStakesChip('${s.replace(/'/g, "\\'")}')"
+                        class="btn-pop py-2 px-2 rounded-2xl text-xs font-mono font-black border-2 border-slate-900 flex flex-col items-center justify-center transition ${isSelected ? 'bg-emerald-500 text-white shadow-[0_3px_0_#064e3b] scale-105' : bgIdle + ' text-slate-900'}">
+                        <span class="text-[10px] font-sans opacity-75">${isSelected ? '🎯 已選' : '盲注'}</span>
+                        <span class="text-sm">${s}</span>
+                    </button>
+                `;
+            }).join('');
+
+            // 錦標賽快速套用標籤
+            const mttChips = document.getElementById('mtt-chips-container');
+            mttChips.innerHTML = presets.mttTiers.map(tier => `
+                <button type="button" onclick="applyMttTier('${tier.label.replace(/'/g, "\\'")}', ${tier.buyin})"
+                    class="btn-pop px-3 py-1.5 rounded-xl text-xs font-black border-2 bg-gradient-to-r from-yellow-200 to-orange-200 border-slate-900 text-slate-900">
+                    🏆 ${tier.label}
+                </button>
+            `).join('');
+        }
+
+        function selectLocationChip(loc) {
+            document.getElementById('input-location').value = loc;
+            renderPresetSelectors();
+        }
+
+        function selectStakesChip(s) {
+            document.getElementById('input-stakes').value = s;
+            renderPresetSelectors();
+        }
+
+        function applyMttTier(label, buyin) {
+            document.getElementById('input-mtt-name').value = label;
+            selectedMttUnitBuyin = Number(buyin) || 0;
+            const bullets = Number(document.getElementById('input-mtt-bullets').value) || 1;
+            document.getElementById('input-buyin').value = selectedMttUnitBuyin * bullets;
+            handleMoneySync('buyin');
+        }
+
+        function adjustHours(delta) {
+            const input = document.getElementById('input-cash-hours');
+            let val = (parseFloat(input.value) || 0) + delta;
+            if (val < 0.5) val = 0.5;
+            input.value = val;
+            syncPreviewCalculation();
+        }
+
+        function adjustBullets(delta) {
+            const input = document.getElementById('input-mtt-bullets');
+            let val = (parseInt(input.value, 10) || 1) + delta;
+            if (val < 1) val = 1;
+            input.value = val;
+            recalcMttBuyinFromUnit();
+        }
+
+        function recalcMttBuyinFromUnit() {
+            const bullets = parseInt(document.getElementById('input-mtt-bullets').value, 10) || 1;
+            if (selectedMttUnitBuyin > 0) {
+                document.getElementById('input-buyin').value = selectedMttUnitBuyin * bullets;
+                handleMoneySync('buyin');
+            }
+        }
+
+        function switchFormType(type) {
+            currentFormType = type;
+            const btnCash = document.getElementById('tab-btn-CASH');
+            const btnMtt = document.getElementById('tab-btn-MTT');
+            const cashGroup = document.getElementById('cash-fields-group');
+            const mttGroup = document.getElementById('mtt-fields-group');
+            const btnBust = document.getElementById('btn-mtt-bust');
+            const labelCashout = document.getElementById('label-cashout');
+
+            if (type === 'CASH') {
+                btnCash.className = 'btn-pop py-2.5 px-3 rounded-xl text-sm font-black flex items-center justify-center gap-2 cash-active';
+                btnMtt.className = 'btn-pop py-2.5 px-3 rounded-xl text-sm font-black flex items-center justify-center gap-2 bg-slate-100 text-slate-600 border-2 border-slate-300';
+                cashGroup.classList.remove('hidden');
+                mttGroup.classList.add('hidden');
+                btnBust.classList.add('hidden');
+                labelCashout.textContent = '📤 最終結算碼量';
+            } else {
+                btnMtt.className = 'btn-pop py-2.5 px-3 rounded-xl text-sm font-black flex items-center justify-center gap-2 mtt-active';
+                btnCash.className = 'btn-pop py-2.5 px-3 rounded-xl text-sm font-black flex items-center justify-center gap-2 bg-slate-100 text-slate-600 border-2 border-slate-300';
+                cashGroup.classList.add('hidden');
+                mttGroup.classList.remove('hidden');
+                btnBust.classList.remove('hidden');
+                labelCashout.textContent = '🏆 比賽獲得獎金';
+            }
+            syncPreviewCalculation();
+        }
+
+        function setCalcMode(mode) {
+            currentCalcMode = mode;
+            const btnCashout = document.getElementById('calc-mode-cashout');
+            const btnDirect = document.getElementById('calc-mode-direct');
+            const cashoutWrap = document.getElementById('cashout-input-wrapper');
+            const directWrap = document.getElementById('direct-profit-wrapper');
+
+            if (mode === 'CASHOUT') {
+                btnCashout.className = 'px-2.5 py-1 rounded-lg bg-indigo-600 text-white font-bold shadow-sm transition';
+                btnDirect.className = 'px-2.5 py-1 rounded-lg text-slate-600 font-bold transition';
+                cashoutWrap.classList.remove('hidden');
+                directWrap.classList.add('hidden');
+            } else {
+                btnDirect.className = 'px-2.5 py-1 rounded-lg bg-amber-500 text-white font-bold shadow-sm transition';
+                btnCashout.className = 'px-2.5 py-1 rounded-lg text-slate-600 font-bold transition';
+                cashoutWrap.classList.add('hidden');
+                directWrap.classList.remove('hidden');
+            }
+            syncPreviewCalculation();
+        }
+
+        function handleMoneySync(source) {
+            const buyinInput = document.getElementById('input-buyin');
+            const cashoutInput = document.getElementById('input-cashout');
+            const profitInput = document.getElementById('input-net-profit');
+
+            const buyin = parseFloat(buyinInput.value) || 0;
+
+            if (source === 'buyin') {
+                if (currentCalcMode === 'CASHOUT') {
+                    const cashout = parseFloat(cashoutInput.value) || 0;
+                    profitInput.value = cashout - buyin;
+                } else {
+                    const profit = parseFloat(profitInput.value) || 0;
+                    cashoutInput.value = Math.max(0, buyin + profit);
+                }
+            } else if (source === 'cashout') {
+                const cashout = parseFloat(cashoutInput.value) || 0;
+                profitInput.value = cashout - buyin;
+            } else if (source === 'profit') {
+                const profit = parseFloat(profitInput.value) || 0;
+                cashoutInput.value = Math.max(0, buyin + profit);
+            }
+            syncPreviewCalculation();
+        }
+
+        function quickSetBuyin(amount) {
+            document.getElementById('input-buyin').value = amount;
+            if (currentFormType === 'MTT') {
+                selectedMttUnitBuyin = amount;
+                document.getElementById('input-mtt-bullets').value = 1;
+            }
+            handleMoneySync('buyin');
+        }
+
+        function quickBustOut() {
+            document.getElementById('input-cashout').value = 0;
+            const buyin = parseFloat(document.getElementById('input-buyin').value) || 0;
+            document.getElementById('input-net-profit').value = -buyin;
+            syncPreviewCalculation();
+        }
+
+        function syncPreviewCalculation() {
+            const buyin = parseFloat(document.getElementById('input-buyin').value) || 0;
+            let profit = 0;
+            if (currentCalcMode === 'CASHOUT') {
+                const cashout = parseFloat(document.getElementById('input-cashout').value) || 0;
+                profit = cashout - buyin;
+            } else {
+                profit = parseFloat(document.getElementById('input-net-profit').value) || 0;
+            }
+
+            const badge = document.getElementById('preview-profit-badge');
+            const subtext = document.getElementById('preview-subtext');
+
+            badge.textContent = formatMoney(profit, true);
+            badge.className = profit > 0 ? 'font-mono text-sm font-black text-emerald-400' : (profit < 0 ? 'font-mono text-sm font-black text-rose-400' : 'font-mono text-sm font-black text-slate-200');
+
+            if (currentFormType === 'CASH') {
+                const hrs = parseFloat(document.getElementById('input-cash-hours').value) || 0;
+                const hourly = hrs > 0 ? (profit / hrs) : 0;
+                subtext.textContent = `時薪 ${formatMoney(hourly, true)}/h`;
+            } else {
+                const roi = buyin > 0 ? ((profit / buyin) * 100).toFixed(0) : '0';
+                subtext.textContent = `投報 ROI ${roi}%`;
+            }
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const editId = document.getElementById('edit-record-id').value;
+            const datetime = document.getElementById('input-datetime').value;
+            const location = document.getElementById('input-location').value || presets.locations[0];
+            const buyin = parseFloat(document.getElementById('input-buyin').value) || 0;
+
+            let profit = 0;
+            let cashout = 0;
+            if (currentCalcMode === 'CASHOUT') {
+                cashout = parseFloat(document.getElementById('input-cashout').value) || 0;
+                profit = cashout - buyin;
+            } else {
+                profit = parseFloat(document.getElementById('input-net-profit').value) || 0;
+                cashout = Math.max(0, buyin + profit);
+            }
+
+            const note = document.getElementById('input-note').value.trim();
+
+            let stakesOrName = '';
+            let hours = 0;
+            let bullets = 1;
+
+            if (currentFormType === 'CASH') {
+                stakesOrName = document.getElementById('input-stakes').value || '5/5';
+                hours = parseFloat(document.getElementById('input-cash-hours').value) || 0;
+            } else {
+                stakesOrName = document.getElementById('input-mtt-name').value.trim() || `$${buyin.toLocaleString()} 錦標賽`;
+                hours = parseFloat(document.getElementById('input-mtt-hours').value) || 0;
+                bullets = parseInt(document.getElementById('input-mtt-bullets').value, 10) || 1;
+            }
+
+            const recordObj = {
+                id: editId ? editId : 'rec_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                type: currentFormType,
+                datetime,
+                location,
+                stakesOrName,
+                buyin,
+                cashout,
+                profit,
+                hours,
+                bullets,
+                note
+            };
+
+            if (editId) {
+                const idx = records.findIndex(r => r.id === editId);
+                if (idx !== -1) records[idx] = recordObj;
+                showToast('🎉 已成功修改這筆紀錄！');
+            } else {
+                records.push(recordObj);
+                showToast('🎉 收池成功！已儲存戰績');
+            }
+
+            saveToStorage();
+            resetForm();
+            renderAll();
+        }
+
+        function resetForm() {
+            document.getElementById('edit-record-id').value = '';
+            document.getElementById('edit-banner').classList.add('hidden');
+            document.getElementById('submit-btn').innerHTML = '<span class="text-xl">🎰</span><span>收池！儲存這筆戰績</span>';
+            document.getElementById('input-buyin').value = '';
+            document.getElementById('input-cashout').value = '';
+            document.getElementById('input-net-profit').value = '';
+            document.getElementById('input-note').value = '';
+            document.getElementById('input-mtt-name').value = '';
+            document.getElementById('input-mtt-bullets').value = 1;
+            selectedMttUnitBuyin = 0;
+            setNowToDatetimeInput();
+            syncPreviewCalculation();
+        }
+
+        function editRecord(id) {
+            const rec = records.find(r => r.id === id);
+            if (!rec) return;
+
+            switchPage('RECORD');
+            switchFormType(rec.type);
+            document.getElementById('edit-record-id').value = rec.id;
+            document.getElementById('edit-banner').classList.remove('hidden');
+            document.getElementById('submit-btn').innerHTML = '<i class="fa-solid fa-floppy-disk text-lg"></i><span>確認更新紀錄</span>';
+
+            document.getElementById('input-datetime').value = rec.datetime;
+            if (!presets.locations.includes(rec.location)) {
+                presets.locations.push(rec.location);
+            }
+            document.getElementById('input-location').value = rec.location;
+
+            if (rec.type === 'CASH') {
+                if (!presets.stakes.includes(rec.stakesOrName)) {
+                    presets.stakes.push(rec.stakesOrName);
+                }
+                document.getElementById('input-stakes').value = rec.stakesOrName;
+                document.getElementById('input-cash-hours').value = rec.hours || 4;
+            } else {
+                document.getElementById('input-mtt-name').value = rec.stakesOrName;
+                document.getElementById('input-mtt-bullets').value = rec.bullets || 1;
+                document.getElementById('input-mtt-hours').value = rec.hours || 0;
+            }
+
+            renderPresetSelectors();
+            document.getElementById('input-buyin').value = rec.buyin;
+            document.getElementById('input-cashout').value = rec.cashout;
+            document.getElementById('input-net-profit').value = rec.profit;
+            document.getElementById('input-note').value = rec.note || '';
+
+            syncPreviewCalculation();
+        }
+
+        function deleteRecord(id) {
+            records = records.filter(r => r.id !== id);
+            saveToStorage();
+            renderAll();
+            showToast('🗑️ 已刪除該筆記錄', 'info');
+        }
+
+        function setGlobalFilter(filter) {
+            globalFilter = filter;
+            ['ALL', 'CASH', 'MTT'].forEach(key => {
+                const btn = document.getElementById('filter-' + key);
+                if (key === filter) {
+                    const activeColor = key === 'MTT' ? 'bg-orange-500 text-white shadow' : (key === 'CASH' ? 'bg-emerald-600 text-white shadow' : 'bg-indigo-600 text-white shadow');
+                    btn.className = `btn-pop py-2 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1 ${activeColor}`;
+                } else {
+                    btn.className = 'btn-pop py-2 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1 text-slate-500 hover:bg-slate-100';
+                }
+            });
+            renderAll();
+        }
+
+        function setChartDisplayMode(mode) {
+            chartDisplayMode = mode;
+            ['COMBINED', 'SPLIT', 'BARS'].forEach(m => {
+                const btn = document.getElementById('chart-mode-' + m.toLowerCase());
+                if (m === mode) {
+                    btn.className = 'px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-indigo-600 text-white shadow-sm';
+                } else {
+                    btn.className = 'px-2.5 py-1 rounded-lg text-[11px] font-extrabold text-slate-600';
+                }
+            });
+            renderChart();
+        }
+
+        function getFilteredAndSortedRecords() {
+            const locFilter = document.getElementById('history-location-filter').value || 'ALL';
+            const searchKw = (document.getElementById('history-search').value || '').trim().toLowerCase();
+
+            return records
+                .filter(r => {
+                    if (globalFilter !== 'ALL' && r.type !== globalFilter) return false;
+                    if (locFilter !== 'ALL' && r.location !== locFilter) return false;
+                    if (searchKw) {
+                        const hay = `${r.location} ${r.stakesOrName} ${r.note || ''}`.toLowerCase();
+                        if (!hay.includes(searchKw)) return false;
+                    }
+                    return true;
+                })
+                .sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
+        }
+
+        function renderAll() {
+            const filteredAsc = getFilteredAndSortedRecords();
+
+            // 頂部導覽列總損益摘要與歷史數量徽章
+            const allNet = records.reduce((s, r) => s + r.profit, 0);
+            document.getElementById('header-summary-bar').textContent = `總損益：${formatMoney(allNet, true)} (${records.length} 場已自動存檔)`;
+            document.getElementById('nav-history-badge').textContent = records.length;
+
+            const cashList = records.filter(r => r.type === 'CASH');
+            const mttList = records.filter(r => r.type === 'MTT');
+
+            const totalNet = filteredAsc.reduce((s, r) => s + r.profit, 0);
+            const totalBuyin = filteredAsc.reduce((s, r) => s + r.buyin, 0);
+            const winCount = filteredAsc.filter(r => r.profit > 0).length;
+            const winRate = filteredAsc.length > 0 ? Math.round((winCount / filteredAsc.length) * 100) : 0;
+            const avgProfit = filteredAsc.length > 0 ? totalNet / filteredAsc.length : 0;
+
+            const cashNet = cashList.reduce((s, r) => s + r.profit, 0);
+            const cashHours = cashList.reduce((s, r) => s + (Number(r.hours) || 0), 0);
+            const cashHourly = cashHours > 0 ? cashNet / cashHours : 0;
+            const cashWins = cashList.filter(r => r.profit > 0).length;
+            const cashWinRate = cashList.length > 0 ? Math.round((cashWins / cashList.length) * 100) : 0;
+
+            const mttNet = mttList.reduce((s, r) => s + r.profit, 0);
+            const mttBuyin = mttList.reduce((s, r) => s + r.buyin, 0);
+            const mttRoi = mttBuyin > 0 ? (mttNet / mttBuyin) * 100 : 0;
+            const mttItmCount = mttList.filter(r => r.cashout > 0).length;
+            const mttItmRate = mttList.length > 0 ? Math.round((mttItmCount / mttList.length) * 100) : 0;
+            const mttAbi = mttList.length > 0 ? mttBuyin / mttList.length : 0;
+
+            const titleMap = { 'ALL': '累積總淨利', 'CASH': '現金桌淨利', 'MTT': '錦標賽淨利' };
+            document.getElementById('kpi-profit-title').textContent = titleMap[globalFilter];
+            document.getElementById('kpi-net-profit').textContent = formatMoney(totalNet, true);
+            document.getElementById('kpi-sessions-count').textContent = `共 ${filteredAsc.length} 場`;
+            document.getElementById('kpi-win-rate').textContent = `勝率 ${winRate}%`;
+
+            document.getElementById('kpi-cash-hourly').textContent = `${formatMoney(cashHourly, true)}/h`;
+            document.getElementById('kpi-cash-hours').textContent = `${cashHours.toFixed(1)} hr`;
+            document.getElementById('kpi-cash-profit').textContent = formatMoney(cashNet, true);
+
+            document.getElementById('kpi-mtt-roi').textContent = `${mttRoi >= 0 ? '+' : ''}${mttRoi.toFixed(1)}%`;
+            document.getElementById('kpi-mtt-itm').textContent = `錢圈 ${mttItmRate}%`;
+            document.getElementById('kpi-mtt-profit').textContent = formatMoney(mttNet, true);
+
+            document.getElementById('kpi-total-buyin').textContent = formatMoney(totalBuyin, false);
+            document.getElementById('kpi-avg-profit').textContent = `場均 ${formatMoney(avgProfit, true)}`;
+
+            // 小計卡片
+            document.getElementById('stat-cash-count').textContent = `${cashList.length} 場`;
+            document.getElementById('stat-cash-net').textContent = formatMoney(cashNet, true);
+            document.getElementById('stat-cash-hourly').textContent = `時薪 ${formatMoney(cashHourly, true)}/h`;
+            document.getElementById('stat-cash-winrate').textContent = `勝率 ${cashWinRate}%`;
+            document.getElementById('stat-cash-hours').textContent = `累積上桌 ${cashHours.toFixed(1)} 小時`;
+
+            document.getElementById('stat-mtt-count').textContent = `${mttList.length} 場`;
+            document.getElementById('stat-mtt-net').textContent = formatMoney(mttNet, true);
+            document.getElementById('stat-mtt-roi').textContent = `ROI ${mttRoi >= 0 ? '+' : ''}${mttRoi.toFixed(1)}%`;
+            document.getElementById('stat-mtt-itm').textContent = `ITM ${mttItmRate}%`;
+            document.getElementById('stat-mtt-abi').textContent = `平均買入 ${formatMoney(mttAbi)}`;
+
+            if (currentPage === 'CHART') renderChart();
+            renderHistoryCards(filteredAsc);
+        }
+
+        function renderChart() {
+            const canvas = document.getElementById('bankrollChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            if (bankrollChartInstance) {
+                bankrollChartInstance.destroy();
+            }
+
+            const sortedAsc = getFilteredAndSortedRecords();
+
+            if (sortedAsc.length === 0) {
+                bankrollChartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['起點'],
+                        datasets: [{ label: '尚無紀錄', data: [0], borderColor: '#cbd5e1', borderWidth: 2 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+                return;
+            }
+
+            const labels = ['起點', ...sortedAsc.map((r, i) => r.datetime ? r.datetime.slice(5, 10).replace('-', '/') : `#${i + 1}`)];
+
+            if (chartDisplayMode === 'BARS') {
+                const barLabels = sortedAsc.map((r, i) => r.datetime ? r.datetime.slice(5, 10).replace('-', '/') : `#${i + 1}`);
+                const barData = sortedAsc.map(r => r.profit);
+                const barColors = sortedAsc.map(r => r.profit >= 0 ? '#10b981' : '#f43f5e');
+
+                bankrollChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: barLabels,
+                        datasets: [{ label: '單場損益', data: barData, backgroundColor: barColors, borderRadius: 8 }]
+                    },
+                    options: getChartOptions(sortedAsc, true)
+                });
+                return;
+            }
+
+            let datasets = [];
+            if (chartDisplayMode === 'COMBINED') {
+                let runningTotal = 0;
+                const dataPoints = [0];
+                sortedAsc.forEach(r => {
+                    runningTotal += r.profit;
+                    dataPoints.push(runningTotal);
+                });
+
+                const mainColor = globalFilter === 'MTT' ? '#f97316' : (globalFilter === 'CASH' ? '#10b981' : '#4f46e5');
+                const bgGradient = ctx.createLinearGradient(0, 0, 0, 220);
+                bgGradient.addColorStop(0, globalFilter === 'MTT' ? 'rgba(249, 115, 22, 0.35)' : 'rgba(79, 70, 229, 0.32)');
+                bgGradient.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
+
+                datasets = [{
+                    label: '累積獲利',
+                    data: dataPoints,
+                    borderColor: mainColor,
+                    backgroundColor: bgGradient,
+                    fill: true,
+                    tension: 0.3,
+                    borderWidth: 3,
+                    pointRadius: 4,
+                    pointBackgroundColor: mainColor
+                }];
+            } else {
+                let runTotal = 0, runCash = 0, runMtt = 0;
+                const totalPts = [0], cashPts = [0], mttPts = [0];
+                sortedAsc.forEach(r => {
+                    runTotal += r.profit;
+                    if (r.type === 'CASH') runCash += r.profit;
+                    if (r.type === 'MTT') runMtt += r.profit;
+                    totalPts.push(runTotal);
+                    cashPts.push(runCash);
+                    mttPts.push(runMtt);
+                });
+
+                datasets = [
+                    { label: '現金桌 Cash', data: cashPts, borderColor: '#10b981', tension: 0.3, borderWidth: 3, pointRadius: 3 },
+                    { label: '錦標賽 MTT', data: mttPts, borderColor: '#f97316', tension: 0.3, borderWidth: 3, pointRadius: 3 },
+                    { label: '總獲利合計', data: totalPts, borderColor: '#6366f1', borderDash: [4, 4], tension: 0.3, borderWidth: 2, pointRadius: 2 }
+                ];
+            }
+
+            bankrollChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets },
+                options: getChartOptions(sortedAsc, false)
+            });
+        }
+
+        function getChartOptions(sortedAsc, isBar) {
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { labels: { color: '#334155', font: { size: 11, weight: 'bold' } } },
+                    tooltip: {
+                        callbacks: {
+                            afterBody: function(context) {
+                                const idx = isBar ? context[0].dataIndex : context[0].dataIndex - 1;
+                                if (idx >= 0 && sortedAsc[idx]) {
+                                    const r = sortedAsc[idx];
+                                    return [`${r.location} (${r.stakesOrName})`, `損益：${formatMoney(r.profit, true)}`];
+                                }
+                                return [];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: { grid: { color: 'rgba(148, 163, 184, 0.15)' }, ticks: { color: '#64748b', font: { size: 10 } } },
+                    y: {
+                        grid: { color: 'rgba(148, 163, 184, 0.2)' },
+                        ticks: { color: '#475569', font: { family: 'JetBrains Mono', size: 10 }, callback: v => formatMoney(v) }
+                    }
+                }
+            };
+        }
+
+        function renderHistoryCards(filteredAsc) {
+            const container = document.getElementById('history-cards-container');
+            const emptyState = document.getElementById('empty-history-state');
+
+            if (filteredAsc.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            emptyState.classList.add('hidden');
+
+            const descList = [...filteredAsc].reverse();
+
+            container.innerHTML = descList.map(r => {
+                const dateFormatted = r.datetime ? r.datetime.replace('T', ' ') : '-';
+                const isCash = r.type === 'CASH';
+                const badge = isCash
+                    ? `<span class="px-2 py-0.5 rounded-lg text-[11px] font-black bg-emerald-100 text-emerald-800">🪙 現金桌</span>`
+                    : `<span class="px-2 py-0.5 rounded-lg text-[11px] font-black bg-orange-100 text-orange-800">🏆 錦標賽</span>`;
+
+                const profitColor = r.profit > 0 ? 'text-emerald-600' : (r.profit < 0 ? 'text-rose-600' : 'text-slate-600');
+
+                let subMetric = '';
+                if (isCash) {
+                    const hr = Number(r.hours) || 0;
+                    const hourly = hr > 0 ? r.profit / hr : 0;
+                    subMetric = `${hr}小時 · 時薪 ${formatMoney(hourly, true)}/h`;
+                } else {
+                    const roi = r.buyin > 0 ? ((r.profit / r.buyin) * 100).toFixed(0) : '0';
+                    subMetric = `買入 ${r.bullets || 1} 發 · ROI ${roi}%`;
+                }
+
+                return `
+                    <div class="card-pop rounded-2xl p-3.5 flex items-center justify-between gap-2">
+                        <div class="space-y-1 min-w-0">
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                ${badge}
+                                <span class="text-xs font-black text-slate-800">${r.location}</span>
+                                <span class="text-xs font-mono font-bold text-indigo-600">${r.stakesOrName}</span>
+                            </div>
+                            <div class="text-[11px] text-slate-500 font-medium">
+                                ${dateFormatted} · 買入 ${formatMoney(r.buyin)} ➔ 結算 ${formatMoney(r.cashout)}
+                            </div>
+                            <div class="text-[11px] text-slate-400 font-medium">${subMetric} ${r.note ? `· 📝 ${r.note}` : ''}</div>
+                        </div>
+                        <div class="text-right shrink-0 space-y-1.5">
+                            <div class="font-mono text-base font-black ${profitColor}">${formatMoney(r.profit, true)}</div>
+                            <div class="flex items-center justify-end gap-1">
+                                <button onclick="editRecord('${r.id}')" class="btn-pop px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-600 text-xs font-bold">編輯</button>
+                                <button onclick="deleteRecord('${r.id}')" class="btn-pop px-2.5 py-1 rounded-lg bg-rose-50 text-rose-600 text-xs font-bold">刪除</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderModalPresetLists() {
+            document.getElementById('modal-location-list').innerHTML = presets.locations.map((loc, idx) => `
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-indigo-50 text-xs font-bold text-indigo-900 border border-indigo-200">
+                    ${loc}
+                    <button onclick="removePresetItem('location', ${idx})" class="text-indigo-400 hover:text-rose-500"><i class="fa-solid fa-circle-xmark"></i></button>
+                </span>
+            `).join('');
+
+            document.getElementById('modal-stakes-list').innerHTML = presets.stakes.map((s, idx) => `
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-50 text-xs font-mono font-bold text-emerald-900 border border-emerald-200">
+                    ${s}
+                    <button onclick="removePresetItem('stakes', ${idx})" class="text-emerald-400 hover:text-rose-500"><i class="fa-solid fa-circle-xmark"></i></button>
+                </span>
+            `).join('');
+
+            document.getElementById('modal-mtt-list').innerHTML = presets.mttTiers.map((t, idx) => `
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-orange-50 text-xs font-bold text-orange-900 border border-orange-200">
+                    ${t.label} ($${t.buyin})
+                    <button onclick="removePresetItem('mttTier', ${idx})" class="text-orange-400 hover:text-rose-500"><i class="fa-solid fa-circle-xmark"></i></button>
+                </span>
+            `).join('');
+        }
+
+        function addPresetItem(type) {
+            if (type === 'location') {
+                const input = document.getElementById('new-location-input');
+                const val = input.value.trim();
+                if (val && !presets.locations.includes(val)) {
+                    presets.locations.push(val);
+                    input.value = '';
+                    showToast('已新增地點：' + val);
+                }
+            } else if (type === 'stakes') {
+                const input = document.getElementById('new-stakes-input');
+                const val = input.value.trim();
+                if (val && !presets.stakes.includes(val)) {
+                    presets.stakes.push(val);
+                    input.value = '';
+                    showToast('已新增盲注：' + val);
+                }
+            } else if (type === 'mttTier') {
+                const labelIn = document.getElementById('new-mtt-label');
+                const buyinIn = document.getElementById('new-mtt-buyin');
+                const label = labelIn.value.trim();
+                const buyin = parseFloat(buyinIn.value) || 0;
+                if (label && buyin > 0) {
+                    presets.mttTiers.push({ label, buyin });
+                    labelIn.value = '';
+                    buyinIn.value = '';
+                    showToast('已新增比賽：' + label);
+                }
+            }
+            saveToStorage();
+            renderModalPresetLists();
+            renderPresetSelectors();
+        }
+
+        function removePresetItem(type, idx) {
+            if (type === 'location' && presets.locations.length > 1) presets.locations.splice(idx, 1);
+            if (type === 'stakes' && presets.stakes.length > 1) presets.stakes.splice(idx, 1);
+            if (type === 'mttTier' && presets.mttTiers.length > 1) presets.mttTiers.splice(idx, 1);
+            saveToStorage();
+            renderModalPresetLists();
+            renderPresetSelectors();
+        }
+
+        function copyBackupJson() {
+            const area = document.getElementById('backup-json-area');
+            area.value = JSON.stringify({ presets, records }, null, 2);
+            area.select();
+            document.execCommand('copy');
+            showToast('已複製備份碼至剪貼簿！');
+        }
+
+        function downloadJsonFile() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ presets, records }, null, 2));
+            const dlAnchor = document.createElement('a');
+            dlAnchor.setAttribute("href", dataStr);
+            dlAnchor.setAttribute("download", `poker_bankroll_backup_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(dlAnchor);
+            dlAnchor.click();
+            dlAnchor.remove();
+            showToast('已下載備份檔案！');
+        }
+
+        function importBackupJson() {
+            try {
+                const raw = document.getElementById('backup-json-area').value.trim();
+                const parsed = JSON.parse(raw);
+                if (parsed.records && Array.isArray(parsed.records)) {
+                    records = parsed.records;
+                    if (parsed.presets) presets = parsed.presets;
+                    saveToStorage();
+                    renderPresetSelectors();
+                    renderAll();
+                    showToast('🎉 已成功還原所有備份記錄！');
+                } else {
+                    showToast('備份碼格式不正確', 'info');
+                }
+            } catch (e) {
+                showToast('解析備份碼失敗，請確認格式', 'info');
+            }
+        }
+
+        function clearAllRecordsConfirm() {
+            records = [];
+            saveToStorage();
+            renderAll();
+            showToast('已清空所有歷史紀錄', 'info');
+        }
+
+        function loadDemoData() {
+            records = [
+                { id: 'd1', type: 'CASH', datetime: '2026-10-02T20:00', location: '華人撲克', stakesOrName: '5/5', buyin: 1000, cashout: 2350, profit: 1350, hours: 4, bullets: 1, note: '翻牌暗三條收最大池' },
+                { id: 'd2', type: 'MTT', datetime: '2026-10-05T15:00', location: '華人撲克', stakesOrName: '$1,200 日常賽', buyin: 1200, cashout: 0, profit: -1200, hours: 2.5, bullets: 1, note: 'AK < QQ 泡沫前出局' },
+                { id: 'd3', type: 'CASH', datetime: '2026-10-08T21:00', location: '華人撲克', stakesOrName: '5/10', buyin: 2000, cashout: 1400, profit: -600, hours: 3.5, bullets: 1, note: '河牌被買花成功' },
+                { id: 'd4', type: 'MTT', datetime: '2026-10-10T14:00', location: '華人撲克', stakesOrName: '$2,500 錦標賽', buyin: 2500, cashout: 8800, profit: 6300, hours: 5.5, bullets: 1, note: '順利打進 FT 第 2 名！🏆' },
+                { id: 'd5', type: 'CASH', datetime: '2026-10-13T19:30', location: '華人撲克', stakesOrName: '10/20', buyin: 3000, cashout: 5600, profit: 2600, hours: 5, bullets: 1, note: '桌況超好穩定收池' },
+                { id: 'd6', type: 'CASH', datetime: '2026-10-16T20:30', location: '華人撲克', stakesOrName: '20/40', buyin: 5000, cashout: 8200, profit: 3200, hours: 4, bullets: 1, note: 'AA 翻前 All-in 雙倍收池' }
+            ];
+            saveToStorage();
+            renderAll();
+            switchPage('CHART');
+            showToast('🎰 已載入範例戰績並跳轉至圖表分析！');
+        }
+    </script>
+
+</body></html>
