@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#059669">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="PokerRoll">
     <title>PokerRoll 撲克記帳王 | 現場德州撲克資金 App</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&amp;family=JetBrains+Mono:wght@600;700;800&amp;family=Noto+Sans+TC:wght@500;700;900&amp;display=swap" rel="stylesheet">
+    <script src="vendor/tailwind.js"></script>
+    <script src="vendor/chart.js"></script>
+    <link rel="stylesheet" href="vendor/fontawesome.css">
+    <link href="vendor/fonts.css" rel="stylesheet">
     
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                        sans: ['Inter', 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', 'system-ui', 'sans-serif'],
                         mono: ['JetBrains Mono', 'monospace'],
                     }
                 }
@@ -101,13 +101,17 @@
             scrollbar-width: none;
         }
     </style>
-<link rel="manifest" href="manifest.webmanifest">
-    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="撲克記帳王">
+    <meta name="description" content="現場德州撲克現金桌與錦標賽資金管理 App">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
-    </head>
-
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+    <link rel="maskable-icon" href="icons/maskable-512.png">
+</head>
 
 <body class="h-[100dvh] w-screen overflow-hidden flex flex-col select-none relative">
 
@@ -128,13 +132,13 @@
                     <svg viewBox="0 0 68 60" class="w-full h-full drop-shadow">
                         <!-- 後方紅心A -->
                         <g transform="rotate(-12 24 30)">
-                            <rect x="4" y="6" width="34" height="46" rx="6" fill="#ffffff" stroke="#1e293b" stroke-width="3"></rect>
+                            <rect x="4" y="6" width="34" height="46" rx="6" fill="#ffffff" stroke="#1e293b" stroke-width="3"/>
                             <text x="10" y="21" font-family="Arial, sans-serif" font-weight="900" font-size="13" fill="#e11d48">A</text>
-                            <path d="M21 26 C21 23, 15 21, 15 26 C15 30, 21 34, 21 37 C21 34, 27 30, 27 26 C27 21, 21 23, 21 26 Z" fill="#e11d48"></path>
+                            <path d="M21 26 C21 23, 15 21, 15 26 C15 30, 21 34, 21 37 C21 34, 27 30, 27 26 C27 21, 21 23, 21 26 Z" fill="#e11d48"/>
                         </g>
                         <!-- 前方黑桃A -->
                         <g transform="rotate(10 44 30)">
-                            <rect x="26" y="6" width="34" height="46" rx="6" fill="#fef08a" stroke="#1e293b" stroke-width="3"></rect>
+                            <rect x="26" y="6" width="34" height="46" rx="6" fill="#fef08a" stroke="#1e293b" stroke-width="3"/>
                             <text x="32" y="21" font-family="Arial, sans-serif" font-weight="900" font-size="13" fill="#0f172a">A</text>
                             <text x="36" y="41" font-size="18">♠️</text>
                         </g>
@@ -143,26 +147,46 @@
                 <div>
                     <div class="flex items-center gap-1.5">
                         <h1 class="font-black text-base tracking-tight leading-none text-yellow-300 drop-shadow-[0_2px_0_rgba(0,0,0,0.6)]">撲克記帳王</h1>
-                        <span class="text-[10px] font-black bg-lime-400 text-slate-900 px-2 py-0.5 rounded-full border border-slate-900 shadow-sm">自動存檔</span>
+                        <span id="storage-status-badge" onclick="switchPage('SETTINGS')" class="cursor-pointer text-[10px] font-black bg-lime-400 text-slate-900 px-2 py-0.5 rounded-full border border-slate-900 shadow-sm">⚡ 雙重存檔中</span>
                     </div>
-                    <p class="text-xs font-extrabold text-white mt-0.5 drop-shadow" id="header-summary-bar">總損益：$0 (0 場已自動存檔)</p>
+                    <p class="text-xs font-extrabold text-white mt-0.5 drop-shadow" id="header-summary-bar">累積總損益：$0 (0 場)</p>
                 </div>
             </div>
 
             <div class="flex items-center gap-1.5">
-                <button onclick="loadDemoData()" class="btn-pop px-2.5 py-1.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-black text-xs border-2 border-slate-900 flex items-center gap-1" title="載入範例資料">
-                    <span>🎰 範例</span>
+                <button onclick="downloadJsonFile()" class="btn-pop px-2.5 py-1.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-black text-xs border-2 border-slate-900 flex items-center gap-1" title="直接把戰績存成手機/電腦實體檔案">
+                    <i class="fa-solid fa-floppy-disk text-slate-900"></i>
+                    <span>存入手機/電腦</span>
                 </button>
-                <button onclick="openAndroidInstallModal()" class="btn-pop px-2.5 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-400 text-white font-black text-xs border-2 border-slate-900 flex items-center gap-1">
-                    <i class="fa-brands fa-android text-sm text-lime-300"></i>
-                    <span>裝到手機</span>
+                <button onclick="triggerLocalFilePicker()" class="btn-pop px-2.5 py-1.5 rounded-xl bg-sky-400 hover:bg-sky-300 text-slate-950 font-black text-xs border-2 border-slate-900 flex items-center gap-1" title="從手機/電腦讀取戰績檔案">
+                    <i class="fa-solid fa-folder-open text-slate-900"></i>
+                    <span>讀取檔案</span>
                 </button>
             </div>
         </div>
     </header>
 
+    <!-- 隱藏的本機檔案讀取器 (支援手機與電腦直接選取 .json 或舊版 .html 帳本) -->
+    <input type="file" id="local-file-input" accept=".json,.txt" class="hidden" onchange="handleLocalFileSelected(event)">
+
     <!-- 一頁式主內容容器 -->
     <main class="flex-1 overflow-y-auto no-scrollbar px-3 py-3 max-w-xl w-full mx-auto relative z-10">
+
+        <!-- 永久保存與本機硬碟同步狀態橫幅 -->
+        <div class="bg-slate-900 text-white rounded-2xl px-3 py-2 mb-3 border-2 border-yellow-400 shadow flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+                <span class="text-base shrink-0">🛡️</span>
+                <div class="truncate">
+                    <div id="persistence-banner-title" class="text-[11px] font-black text-yellow-300 truncate">防消失保護已啟動（雲端＋本機硬碟）</div>
+                    <div id="persistence-banner-sub" class="text-[10px] text-slate-300 truncate">可點右側按鈕將戰績直接存進手機/電腦資料夾</div>
+                </div>
+            </div>
+            <div class="flex items-center gap-1 shrink-0">
+                <button type="button" onclick="connectLiveLocalFile()" id="btn-live-file" class="btn-pop px-2.5 py-1 rounded-xl bg-emerald-500 text-white font-black text-[11px] border border-white/40">
+                    🔗 綁定硬碟檔
+                </button>
+            </div>
+        </div>
 
         <!-- ==================== 分頁 1：快速記一筆 (RECORD) ==================== -->
         <section id="page-RECORD" class="space-y-3 pb-4">
@@ -207,12 +231,8 @@
                             ⚙️ 新增/改地點
                         </button>
                     </div>
-                    <select id="input-location" class="hidden"><option value="華人撲克">華人撲克</option></select>
-                    <div id="location-chips-container" class="flex flex-wrap gap-2">
-                    <button type="button" onclick="selectLocationChip('華人撲克')" class="btn-pop px-3.5 py-1.5 rounded-xl text-xs font-black border-2 transition bg-indigo-600 border-slate-900 text-white shadow-[0_3px_0_#1e293b] scale-105">
-                        🏟️ 華人撲克
-                    </button>
-                </div>
+                    <select id="input-location" class="hidden"></select>
+                    <div id="location-chips-container" class="flex flex-wrap gap-2"></div>
                 </div>
 
                 <!-- 2A. 現金桌專屬：盲注大小按鈕 (5/5, 5/10, 10/20, 20/40) & 遊玩時數 -->
@@ -221,28 +241,8 @@
                         <label class="text-xs font-black text-emerald-900 flex items-center gap-1.5 mb-2">
                             <span class="text-base">🪙</span> 點選盲注大小 (小盲/大盲)
                         </label>
-                        <select id="input-stakes" class="hidden"><option value="5/5">5/5</option><option value="5/10">5/10</option><option value="10/20">10/20</option><option value="20/40">20/40</option></select>
-                        <div id="stakes-chips-container" class="grid grid-cols-4 gap-2">
-                    <button type="button" onclick="selectStakesChip('5/5')" class="btn-pop py-2 px-2 rounded-2xl text-xs font-mono font-black border-2 border-slate-900 flex flex-col items-center justify-center transition bg-emerald-500 text-white shadow-[0_3px_0_#064e3b] scale-105">
-                        <span class="text-[10px] font-sans opacity-75">🎯 已選</span>
-                        <span class="text-sm">5/5</span>
-                    </button>
-                
-                    <button type="button" onclick="selectStakesChip('5/10')" class="btn-pop py-2 px-2 rounded-2xl text-xs font-mono font-black border-2 border-slate-900 flex flex-col items-center justify-center transition bg-emerald-100 text-slate-900">
-                        <span class="text-[10px] font-sans opacity-75">盲注</span>
-                        <span class="text-sm">5/10</span>
-                    </button>
-                
-                    <button type="button" onclick="selectStakesChip('10/20')" class="btn-pop py-2 px-2 rounded-2xl text-xs font-mono font-black border-2 border-slate-900 flex flex-col items-center justify-center transition bg-amber-100 text-slate-900">
-                        <span class="text-[10px] font-sans opacity-75">盲注</span>
-                        <span class="text-sm">10/20</span>
-                    </button>
-                
-                    <button type="button" onclick="selectStakesChip('20/40')" class="btn-pop py-2 px-2 rounded-2xl text-xs font-mono font-black border-2 border-slate-900 flex flex-col items-center justify-center transition bg-rose-100 text-slate-900">
-                        <span class="text-[10px] font-sans opacity-75">盲注</span>
-                        <span class="text-sm">20/40</span>
-                    </button>
-                </div>
+                        <select id="input-stakes" class="hidden"></select>
+                        <div id="stakes-chips-container" class="grid grid-cols-4 gap-2"></div>
                     </div>
 
                     <div class="grid grid-cols-2 gap-2.5 items-center bg-emerald-100/80 p-2.5 rounded-2xl border-2 border-emerald-600/40">
@@ -250,13 +250,15 @@
                             <label class="block text-[11px] font-black text-emerald-950">⏱️ 上桌時數 (小時)</label>
                             <div class="flex items-center gap-1 mt-1">
                                 <button type="button" onclick="adjustHours(-0.5)" class="btn-pop w-8 h-8 rounded-xl bg-white border-2 border-slate-900 text-slate-900 font-black">-0.5</button>
-                                <input type="number" id="input-cash-hours" step="0.5" min="0.5" max="72" value="4" oninput="syncPreviewCalculation()" class="w-12 text-center bg-white border-2 border-slate-900 rounded-xl py-1 text-sm font-mono font-black text-slate-900 outline-none">
+                                <input type="number" id="input-cash-hours" step="0.5" min="0.5" max="72" value="4" oninput="syncPreviewCalculation()"
+                                    class="w-12 text-center bg-white border-2 border-slate-900 rounded-xl py-1 text-sm font-mono font-black text-slate-900 outline-none">
                                 <button type="button" onclick="adjustHours(0.5)" class="btn-pop w-8 h-8 rounded-xl bg-emerald-500 border-2 border-slate-900 text-white font-black">+0.5</button>
                             </div>
                         </div>
                         <div>
                             <label class="block text-[11px] font-black text-emerald-950">📅 打牌日期時間</label>
-                            <input type="datetime-local" id="input-datetime" required="" class="mt-1 w-full bg-white border-2 border-slate-900 rounded-xl px-2 py-1 text-xs font-bold text-slate-900 outline-none">
+                            <input type="datetime-local" id="input-datetime" required
+                                class="mt-1 w-full bg-white border-2 border-slate-900 rounded-xl px-2 py-1 text-xs font-bold text-slate-900 outline-none">
                         </div>
                     </div>
                 </div>
@@ -267,28 +269,9 @@
                         <label class="text-xs font-black text-orange-900 flex items-center gap-1.5 mb-2">
                             <span class="text-base">👑</span> 點選常見錦標賽 (自動填報名費)
                         </label>
-                        <div id="mtt-chips-container" class="flex flex-wrap gap-1.5 mb-2">
-                <button type="button" onclick="applyMttTier('$600 限時賽', 600)" class="btn-pop px-3 py-1.5 rounded-xl text-xs font-black border-2 bg-gradient-to-r from-yellow-200 to-orange-200 border-slate-900 text-slate-900">
-                    🏆 $600 限時賽
-                </button>
-            
-                <button type="button" onclick="applyMttTier('$1,200 日常賽', 1200)" class="btn-pop px-3 py-1.5 rounded-xl text-xs font-black border-2 bg-gradient-to-r from-yellow-200 to-orange-200 border-slate-900 text-slate-900">
-                    🏆 $1,200 日常賽
-                </button>
-            
-                <button type="button" onclick="applyMttTier('$2,500 錦標賽', 2500)" class="btn-pop px-3 py-1.5 rounded-xl text-xs font-black border-2 bg-gradient-to-r from-yellow-200 to-orange-200 border-slate-900 text-slate-900">
-                    🏆 $2,500 錦標賽
-                </button>
-            
-                <button type="button" onclick="applyMttTier('$3,400 深籌賽', 3400)" class="btn-pop px-3 py-1.5 rounded-xl text-xs font-black border-2 bg-gradient-to-r from-yellow-200 to-orange-200 border-slate-900 text-slate-900">
-                    🏆 $3,400 深籌賽
-                </button>
-            
-                <button type="button" onclick="applyMttTier('$6,600 主賽事', 6600)" class="btn-pop px-3 py-1.5 rounded-xl text-xs font-black border-2 bg-gradient-to-r from-yellow-200 to-orange-200 border-slate-900 text-slate-900">
-                    🏆 $6,600 主賽事
-                </button>
-            </div>
-                        <input type="text" id="input-mtt-name" placeholder="或手動輸入比賽名稱 (例: 華人撲克開幕賽)" class="w-full bg-orange-50 border-2 border-slate-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 outline-none">
+                        <div id="mtt-chips-container" class="flex flex-wrap gap-1.5 mb-2"></div>
+                        <input type="text" id="input-mtt-name" placeholder="或手動輸入比賽名稱 (例: 華人撲克開幕賽)"
+                            class="w-full bg-orange-50 border-2 border-slate-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 outline-none">
                     </div>
 
                     <div class="grid grid-cols-2 gap-2.5 bg-orange-100/80 p-2.5 rounded-2xl border-2 border-orange-500/40">
@@ -296,13 +279,15 @@
                             <label class="block text-[11px] font-black text-orange-950">🔫 買入次數 (第幾發)</label>
                             <div class="flex items-center gap-1 mt-1">
                                 <button type="button" onclick="adjustBullets(-1)" class="btn-pop w-8 h-8 rounded-xl bg-white border-2 border-slate-900 text-slate-900 font-black">-</button>
-                                <input type="number" id="input-mtt-bullets" min="1" max="20" value="1" oninput="recalcMttBuyinFromUnit()" class="w-12 text-center bg-white border-2 border-slate-900 rounded-xl py-1 text-sm font-mono font-black text-slate-900 outline-none">
+                                <input type="number" id="input-mtt-bullets" min="1" max="20" value="1" oninput="recalcMttBuyinFromUnit()"
+                                    class="w-12 text-center bg-white border-2 border-slate-900 rounded-xl py-1 text-sm font-mono font-black text-slate-900 outline-none">
                                 <button type="button" onclick="adjustBullets(1)" class="btn-pop w-8 h-8 rounded-xl bg-orange-500 border-2 border-slate-900 text-white font-black">+</button>
                             </div>
                         </div>
                         <div>
                             <label class="block text-[11px] font-black text-orange-950">⏱️ 比賽時數 (小時)</label>
-                            <input type="number" id="input-mtt-hours" step="0.5" min="0" max="72" value="3.5" class="mt-1 w-full bg-white border-2 border-slate-900 rounded-xl px-2.5 py-1 text-sm font-mono font-black text-slate-900 outline-none">
+                            <input type="number" id="input-mtt-hours" step="0.5" min="0" max="72" value="3.5"
+                                class="mt-1 w-full bg-white border-2 border-slate-900 rounded-xl px-2.5 py-1 text-sm font-mono font-black text-slate-900 outline-none">
                         </div>
                     </div>
                 </div>
@@ -329,7 +314,8 @@
                             <label class="block text-[11px] font-black text-amber-900" id="label-buyin">📥 總買入金額</label>
                             <div class="relative mt-0.5">
                                 <span class="absolute left-0 top-0.5 text-amber-600 font-mono font-black text-lg">$</span>
-                                <input type="number" id="input-buyin" required="" min="0" step="any" placeholder="0" oninput="handleMoneySync('buyin')" class="w-full bg-transparent pl-4 py-0.5 text-xl font-mono font-black text-slate-950 outline-none">
+                                <input type="number" id="input-buyin" required min="0" step="any" placeholder="0" oninput="handleMoneySync('buyin')"
+                                    class="w-full bg-transparent pl-4 py-0.5 text-xl font-mono font-black text-slate-950 outline-none">
                             </div>
                         </div>
 
@@ -338,7 +324,8 @@
                             <label class="block text-[11px] font-black text-emerald-900" id="label-cashout">📤 最終結算碼量</label>
                             <div class="relative mt-0.5">
                                 <span class="absolute left-0 top-0.5 text-emerald-600 font-mono font-black text-lg">$</span>
-                                <input type="number" id="input-cashout" min="0" step="any" placeholder="0" oninput="handleMoneySync('cashout')" class="w-full bg-transparent pl-4 py-0.5 text-xl font-mono font-black text-emerald-950 outline-none">
+                                <input type="number" id="input-cashout" min="0" step="any" placeholder="0" oninput="handleMoneySync('cashout')"
+                                    class="w-full bg-transparent pl-4 py-0.5 text-xl font-mono font-black text-emerald-950 outline-none">
                             </div>
                         </div>
 
@@ -347,7 +334,8 @@
                             <label class="block text-[11px] font-black text-pink-900">⚡ 最後淨輸贏 (可負數)</label>
                             <div class="relative mt-0.5">
                                 <span class="absolute left-0 top-0.5 text-pink-600 font-mono font-black text-lg">$</span>
-                                <input type="number" id="input-net-profit" step="any" placeholder="例: 1500 或 -500" oninput="handleMoneySync('profit')" class="w-full bg-transparent pl-4 py-0.5 text-xl font-mono font-black text-slate-950 outline-none">
+                                <input type="number" id="input-net-profit" step="any" placeholder="例: 1500 或 -500" oninput="handleMoneySync('profit')"
+                                    class="w-full bg-transparent pl-4 py-0.5 text-xl font-mono font-black text-slate-950 outline-none">
                             </div>
                         </div>
                     </div>
@@ -380,15 +368,17 @@
 
                 <!-- 4. 簡短備註與即時損益預覽列 -->
                 <div class="flex items-center gap-2 pt-1">
-                    <input type="text" id="input-note" placeholder="🃏 備註關鍵手牌 (例: AA 抓雞成功)..." class="flex-1 bg-slate-100 border-2 border-slate-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 outline-none">
+                    <input type="text" id="input-note" placeholder="🃏 備註關鍵手牌 (例: AA 抓雞成功)..."
+                        class="flex-1 bg-slate-100 border-2 border-slate-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 outline-none">
                     <div class="px-3 py-1.5 rounded-xl bg-slate-900 text-white text-right shrink-0 border-2 border-slate-900">
                         <span id="preview-subtext" class="block text-[10px] text-amber-300 font-mono font-bold">時薪 $0/h</span>
-                        <span id="preview-profit-badge" class="font-mono text-sm font-black text-slate-200">$0</span>
+                        <span id="preview-profit-badge" class="font-mono text-sm font-black text-emerald-400">$0</span>
                     </div>
                 </div>
 
                 <!-- 超大鮮豔儲存按鈕 -->
-                <button type="submit" id="submit-btn" class="btn-pop w-full py-3.5 px-4 rounded-2xl font-black text-base text-slate-950 bg-gradient-to-r from-yellow-300 via-amber-400 to-orange-400 border-2 border-slate-900 shadow-[0_5px_0_#1e293b] flex items-center justify-center gap-2">
+                <button type="submit" id="submit-btn"
+                    class="btn-pop w-full py-3.5 px-4 rounded-2xl font-black text-base text-slate-950 bg-gradient-to-r from-yellow-300 via-amber-400 to-orange-400 border-2 border-slate-900 shadow-[0_5px_0_#1e293b] flex items-center justify-center gap-2">
                     <span class="text-xl">🎰</span>
                     <span>收池！儲存這筆戰績</span>
                 </button>
@@ -421,7 +411,7 @@
                     </div>
                     <div id="kpi-net-profit" class="font-mono text-2xl font-black mt-1 drop-shadow">$0</div>
                     <div class="mt-1 flex justify-between text-[11px] text-white font-bold">
-                        <span id="kpi-sessions-count">共 0 場</span>
+                        <span id="kpi-sessions-count">0 場</span>
                         <span id="kpi-win-rate">勝率 0%</span>
                     </div>
                 </div>
@@ -445,9 +435,9 @@
                         <span>錦標賽 ROI 投報</span>
                         <span>♦️</span>
                     </div>
-                    <div id="kpi-mtt-roi" class="font-mono text-2xl font-black mt-1 drop-shadow">+0.0%</div>
+                    <div id="kpi-mtt-roi" class="font-mono text-2xl font-black mt-1 drop-shadow">0.0%</div>
                     <div class="mt-1 flex justify-between text-[11px] text-white font-bold">
-                        <span id="kpi-mtt-itm">錢圈 0%</span>
+                        <span id="kpi-mtt-itm">ITM 0%</span>
                         <span id="kpi-mtt-profit">$0</span>
                     </div>
                 </div>
@@ -455,7 +445,7 @@
                 <div class="rounded-2xl p-3.5 bg-gradient-to-br from-purple-600 to-fuchsia-600 text-white border-3 border-slate-900 shadow-[0_5px_0_#1e293b] relative overflow-hidden">
                     <span class="absolute -right-2 -bottom-3 text-5xl opacity-25 pointer-events-none">🎰</span>
                     <div class="flex items-center justify-between text-xs font-black text-yellow-200">
-                        <span>總買入 &amp; 場均</span>
+                        <span>總買入 & 場均</span>
                         <span>♣️</span>
                     </div>
                     <div id="kpi-total-buyin" class="font-mono text-2xl font-black mt-1 drop-shadow">$0</div>
@@ -498,10 +488,10 @@
                     </div>
                     <div id="stat-cash-net" class="font-mono text-base font-black text-emerald-700">$0</div>
                     <div class="text-[11px] text-slate-700 font-bold mt-1 flex justify-between">
-                        <span id="stat-cash-hourly">時薪 $0/h</span>
+                        <span id="stat-cash-hourly">$0/hr</span>
                         <span id="stat-cash-winrate">勝率 0%</span>
                     </div>
-                    <div id="stat-cash-hours" class="text-[10px] text-slate-500 font-bold mt-0.5">累積上桌 0.0 小時</div>
+                    <div id="stat-cash-hours" class="text-[10px] text-slate-500 font-bold mt-0.5">累積 0 小時</div>
                 </div>
 
                 <div class="card-pop rounded-2xl p-3 bg-orange-50/90">
@@ -511,10 +501,10 @@
                     </div>
                     <div id="stat-mtt-net" class="font-mono text-base font-black text-orange-700">$0</div>
                     <div class="text-[11px] text-slate-700 font-bold mt-1 flex justify-between">
-                        <span id="stat-mtt-roi">ROI +0.0%</span>
+                        <span id="stat-mtt-roi">ROI 0%</span>
                         <span id="stat-mtt-itm">ITM 0%</span>
                     </div>
-                    <div id="stat-mtt-abi" class="text-[10px] text-slate-500 font-bold mt-0.5">平均買入 $0</div>
+                    <div id="stat-mtt-abi" class="text-[10px] text-slate-500 font-bold mt-0.5">均買 $0</div>
                 </div>
             </div>
         </section>
@@ -522,10 +512,13 @@
         <!-- ==================== 分頁 3：歷史戰績列表 (HISTORY) ==================== -->
         <section id="page-HISTORY" class="hidden space-y-3 pb-4">
             <div class="card-pop rounded-2xl p-3 flex items-center gap-2">
-                <select id="history-location-filter" onchange="renderAll()" class="bg-yellow-200 border-2 border-slate-900 rounded-xl px-2.5 py-2 text-xs font-black text-slate-900 outline-none"><option value="ALL">全部地點 (1)</option><option value="華人撲克">華人撲克</option></select>
+                <select id="history-location-filter" onchange="renderAll()" class="bg-yellow-200 border-2 border-slate-900 rounded-xl px-2.5 py-2 text-xs font-black text-slate-900 outline-none">
+                    <option value="ALL">所有地點</option>
+                </select>
                 <div class="relative flex-1">
                     <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500 text-xs"></i>
-                    <input type="text" id="history-search" oninput="renderAll()" placeholder="搜尋盲注、比賽或手牌筆記..." class="w-full bg-slate-100 border-2 border-slate-900 rounded-xl pl-8 pr-3 py-1.5 text-xs font-bold text-slate-800 outline-none">
+                    <input type="text" id="history-search" oninput="renderAll()" placeholder="搜尋盲注、比賽或手牌筆記..."
+                        class="w-full bg-slate-100 border-2 border-slate-900 rounded-xl pl-8 pr-3 py-1.5 text-xs font-bold text-slate-800 outline-none">
                 </div>
             </div>
 
@@ -533,7 +526,7 @@
             <div id="history-cards-container" class="space-y-2.5"></div>
 
             <!-- 空狀態提示 -->
-            <div id="empty-history-state" class="card-pop rounded-3xl py-10 px-4 text-center space-y-3">
+            <div id="empty-history-state" class="hidden card-pop rounded-3xl py-10 px-4 text-center space-y-3">
                 <div class="text-5xl">🃏</div>
                 <div class="text-slate-900 font-black text-base">目前還沒有牌局紀錄喔！</div>
                 <p class="text-xs font-bold text-slate-600">點擊下方「記一筆」輸入戰績，或點右上角「🎰 範例」一鍵看效果。</p>
@@ -543,43 +536,72 @@
         <!-- ==================== 分頁 4：設定、安裝 App 與備份 (SETTINGS) ==================== -->
         <section id="page-SETTINGS" class="hidden space-y-3.5 pb-4">
             
-            <!-- 專為 Android 與手機設計的雙重安裝方案卡片 -->
-            <div class="card-pop rounded-3xl p-4 bg-gradient-to-br from-emerald-500 via-teal-600 to-indigo-700 text-white space-y-3">
+            <!-- 徹底解決資料消失：手機/電腦實體檔案永久保存專區 -->
+            <div class="card-pop rounded-3xl p-4 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white space-y-3.5">
                 <div class="flex items-center justify-between">
-                    <h3 class="font-black text-base flex items-center gap-2 text-yellow-300 drop-shadow">
-                        <i class="fa-brands fa-android text-2xl text-lime-300"></i>
-                        <span>Android 手機安裝與離線下載</span>
+                    <h3 class="font-black text-base flex items-center gap-2 text-yellow-300">
+                        <span class="text-xl">🛡️</span>
+                        <span>手機 / 電腦實體檔案永久保存</span>
                     </h3>
+                    <span id="cloud-sync-indicator" class="text-[10px] font-black px-2.5 py-1 rounded-full bg-emerald-500 text-slate-950">準備中</span>
                 </div>
-                <p class="text-xs text-white font-bold leading-relaxed bg-black/25 p-3 rounded-2xl border border-white/20">
-                    💡 為什麼點「安裝」沒反應？因為您目前在預覽框內瀏覽！請使用以下**最穩定的 2 個方法**把 App 裝進安卓手機：
+
+                <p class="text-xs text-slate-200 font-bold leading-relaxed bg-white/10 p-3 rounded-2xl border border-white/15">
+                    💡 為了確保隔幾天、甚至換手機後資料**絕對不會消失**，請選擇下方任一方式將資料直接存在你的手機或電腦資料夾裡：
                 </p>
 
-                <!-- 方法 1：一鍵下載獨立 App 檔到手機 -->
-                <div class="bg-white text-slate-900 p-3.5 rounded-2xl border-2 border-slate-900 space-y-2 shadow">
-                    <div class="font-black text-xs text-rose-600 flex items-center gap-1.5">
-                        <span class="px-2 py-0.5 bg-rose-100 rounded-md border border-rose-300">最推薦！100% 成功</span>
-                        <span>方法一：下載獨立 App 檔案到手機</span>
+                <!-- 方案 1：一鍵儲存/讀取手機與電腦內的戰績檔案 (.json) -->
+                <div class="bg-white text-slate-900 p-3.5 rounded-2xl border-2 border-slate-900 space-y-2.5">
+                    <div class="font-black text-xs text-emerald-700 flex items-center justify-between">
+                        <span>💾 方式一：直接存成手機/電腦裡的實體檔案</span>
+                        <span class="px-2 py-0.5 bg-emerald-100 text-emerald-900 rounded-md text-[10px]">100% 永不消失</span>
                     </div>
-                    <p class="text-[11px] font-bold text-slate-600">
-                        點擊下方按鈕，會直接將整個「撲克記帳王 App (`撲克記帳王App.html`)」連同你目前的設定下載到手機裡。在手機「下載」資料夾點開它，就能在 Chrome 點右上角「⋮」➔「加到主畫面」永久離線使用！
+                    <p class="text-[11px] font-bold text-slate-600 leading-relaxed">
+                        打完牌點「下載戰績檔到手機/電腦」，檔案會直接存進你的「下載 (Downloads)」資料夾。任何時候點「從手機/電腦讀取檔案」就能一秒載入全部紀錄！
                     </p>
-                    <button type="button" onclick="downloadStandaloneHtmlApp()" class="btn-pop w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-400 text-slate-950 font-black text-xs border-2 border-slate-900 flex items-center justify-center gap-2 shadow">
-                        <i class="fa-solid fa-cloud-arrow-down text-base"></i>
-                        <span>立即下載「撲克記帳王 App」到手機</span>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" onclick="downloadJsonFile()" class="btn-pop py-2.5 px-3 rounded-xl bg-emerald-500 text-white font-black text-xs border-2 border-slate-900 flex items-center justify-center gap-1.5 shadow">
+                            <i class="fa-solid fa-download"></i>
+                            <span>存入手機/電腦</span>
+                        </button>
+                        <button type="button" onclick="triggerLocalFilePicker()" class="btn-pop py-2.5 px-3 rounded-xl bg-sky-400 text-slate-950 font-black text-xs border-2 border-slate-900 flex items-center justify-center gap-1.5 shadow">
+                            <i class="fa-solid fa-folder-open"></i>
+                            <span>讀取手機/電腦檔</span>
+                        </button>
+                    </div>
+                    <label class="flex items-center gap-2 pt-1 cursor-pointer select-none">
+                        <input type="checkbox" id="auto-download-toggle" onchange="toggleAutoDownloadOnSave(this.checked)" class="w-4 h-4 accent-emerald-600 rounded">
+                        <span class="text-[11px] font-black text-slate-800">每次新增/修改戰績時，自動下載最新備份檔到手機/電腦</span>
+                    </label>
+                </div>
+
+                <!-- 方案 2：電腦版 / Android Chrome 直接綁定硬碟檔案即時寫入 -->
+                <div class="bg-amber-50 text-slate-900 p-3.5 rounded-2xl border-2 border-slate-900 space-y-2">
+                    <div class="font-black text-xs text-amber-900 flex items-center justify-between">
+                        <span>🔗 方式二：綁定電腦/手機硬碟檔案（自動同步寫入）</span>
+                        <span id="live-file-status" class="text-[10px] font-mono bg-amber-200 px-2 py-0.5 rounded">尚未綁定</span>
+                    </div>
+                    <p class="text-[11px] font-bold text-slate-600 leading-relaxed">
+                        點下方按鈕指定一個電腦或手機裡的檔案後，你之後每記一筆帳，系統就會**直接覆寫更新到該硬碟檔案**，完全不怕瀏覽器被清空！
+                    </p>
+                    <button type="button" onclick="connectLiveLocalFile()" class="btn-pop w-full py-2.5 px-3 rounded-xl bg-amber-400 text-slate-950 font-black text-xs border-2 border-slate-900 flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-hard-drive"></i>
+                        <span>選擇/建立本機硬碟同步檔 (PokerData.json)</span>
                     </button>
                 </div>
 
-                <!-- 方法 2：原生 PWA 安裝或 Chrome 選單 -->
-                <div class="bg-black/30 p-3 rounded-2xl border border-white/20 space-y-2 text-xs">
-                    <div class="font-black text-lime-300">🤖 方法二：在 Chrome 瀏覽器直接加到桌面</div>
-                    <ol class="list-decimal list-inside space-y-1 text-[11px] font-bold text-indigo-50">
-                        <li>點擊手機 Chrome 右上角的「<strong class="text-yellow-300">⋮ (三個點選單)</strong>」</li>
-                        <li>點選「<strong class="text-yellow-300">加到主畫面</strong>」或「<strong class="text-yellow-300">安裝應用程式</strong>」</li>
-                        <li>桌面就會出現「♠️ 撲克記帳王」圖示，點開即全螢幕運作！</li>
-                    </ol>
-                    <button id="pwa-install-btn" onclick="triggerPwaInstall()" class="btn-pop w-full py-2 rounded-xl bg-lime-400 text-slate-950 font-black text-xs border-2 border-slate-900 shadow">
-                        🚀 觸發瀏覽器原生安裝提示
+                <!-- 方案 3：下載「內嵌目前所有戰績」的獨立 HTML App -->
+                <div class="bg-indigo-50 text-slate-900 p-3.5 rounded-2xl border-2 border-slate-900 space-y-2">
+                    <div class="font-black text-xs text-indigo-900">📲 方式三：下載「內含目前所有戰績」的獨立 App 檔</div>
+                    <p class="text-[11px] font-bold text-slate-600 leading-relaxed">
+                        這個按鈕會把你**目前輸入過的所有戰績直接寫進 App 檔案裡面**下載到你的手機或電腦。就算沒網路、過好幾個月點開這個檔案，裡面的戰績也全部都在！
+                    </p>
+                    <button type="button" onclick="downloadStandaloneHtmlApp()" class="btn-pop w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-400 text-slate-950 font-black text-xs border-2 border-slate-900 flex items-center justify-center gap-2 shadow">
+                        <i class="fa-solid fa-cloud-arrow-down text-base"></i>
+                        <span>打包下載「撲克記帳王 App (含全部資料)」</span>
+                    </button>
+                    <button type="button" onclick="loadDemoData()" class="btn-pop w-full py-1.5 rounded-xl bg-slate-200 text-slate-700 font-black text-[11px] border border-slate-400">
+                        🎰 載入範例測試資料
                     </button>
                 </div>
             </div>
@@ -591,7 +613,7 @@
                         <span class="text-lg">🎛️</span> 自訂地點與盲注按鈕
                     </h3>
                     <button type="button" onclick="restoreDefaultPresets()" class="btn-pop px-2.5 py-1 rounded-xl bg-amber-100 text-amber-900 border border-amber-400 text-[11px] font-black">
-                        🔄 恢復預設(華人撲克 &amp; 5/5~20/40)
+                        🔄 恢復預設(華人撲克 & 5/5~20/40)
                     </button>
                 </div>
 
@@ -724,10 +746,129 @@
     <!-- 輕量提示 Toast -->
     <div id="toast-container" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none w-11/12 max-w-sm"></div>
 
+    <!-- 內嵌初始資料區 (當使用者下載獨立 HTML App 時，會將最新戰績直接寫入此區塊，確保打開檔案 100% 有資料) -->
+    <script id="embedded-poker-data" type="application/json">null</script>
+
+    <!-- 雲端自動永久備份模組 (Firestore + IndexedDB + LocalStorage + 實體檔案四重保護) -->
+    <script type="module">
+                        
+        let db = null;
+        let auth = null;
+        let currentUser = null;
+    let _doc = null;
+    let _setDoc = null;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'poker-bankroll-tracker-app';
+
+        async function initCloudPersistence() {
+            try {
+                if (typeof __firebase_config === 'undefined' || !__firebase_config) {
+                    updateCloudStatusUI('本機硬碟保護中', false);
+                    return;
+                }
+                // 延遲載入 Firebase SDK：只有真的存在 __firebase_config 時才抓取。
+                // 一般 PWA 部署沒有憑證，雲端層用不到，不該每次載入都下載 700KB SDK。
+                const fbApp = await import('./vendor/firebase/firebase-app.js');
+                const fbAuth = await import('./vendor/firebase/firebase-auth.js');
+                const fbFs = await import('./vendor/firebase/firebase-firestore.js');
+                const { initializeApp } = fbApp;
+                const { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } = fbAuth;
+                const { getFirestore, doc, setDoc, onSnapshot } = fbFs;
+                _doc = doc; _setDoc = setDoc;
+                                const firebaseConfig = JSON.parse(__firebase_config);
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                // RULE 3: 先完成驗證再執行任何讀寫
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                onAuthStateChanged(auth, (user) => {
+                    currentUser = user;
+                    if (!user) return;
+                    updateCloudStatusUI('☁️ 雲端＋本機已連線', true);
+
+                    // RULE 1: 嚴格遵守路徑 /artifacts/{appId}/users/{userId}/{collectionName}/{docId}
+                    const vaultDocRef = _doc(db, 'artifacts', appId, 'users', user.uid, 'poker_vault', 'main_state');
+
+                    onSnapshot(vaultDocRef, (snapshot) => {
+                        if (snapshot.exists()) {
+                            const cloudData = snapshot.data();
+                            if (cloudData && cloudData.recordsJson) {
+                                try {
+                                    const parsedRecords = JSON.parse(cloudData.recordsJson);
+                                    const parsedPresets = cloudData.presetsJson ? JSON.parse(cloudData.presetsJson) : null;
+                                    // 當本機紀錄為空或雲端紀錄較多/較新時，自動從雲端救回資料
+                                    if (Array.isArray(parsedRecords) && window.applyCloudRestoredData) {
+                                        window.applyCloudRestoredData(parsedRecords, parsedPresets, cloudData.updatedAt || 0);
+                                    }
+                                } catch (e) {
+                                    console.error('解析雲端戰績失敗:', e);
+                                }
+                            }
+                        } else {
+                            // 雲端尚無資料但本機有資料時，立即備份上雲端
+                            if (window.pushLocalStateToCloud) {
+                                window.pushLocalStateToCloud();
+                            }
+                        }
+                    }, (err) => {
+                        console.warn('雲端同步監聽略過:', err);
+                    });
+                });
+            } catch (e) {
+                console.warn('雲端模組未啟用，使用本機硬碟模式:', e);
+                updateCloudStatusUI('本機硬碟模式', false);
+            }
+        }
+
+        function updateCloudStatusUI(text, isOnline) {
+            const badge = document.getElementById('storage-status-badge');
+            const cloudInd = document.getElementById('cloud-sync-indicator');
+            const bannerTitle = document.getElementById('persistence-banner-title');
+            if (badge) badge.textContent = text;
+            if (cloudInd) {
+                cloudInd.textContent = text;
+                cloudInd.className = isOnline
+                    ? 'text-[10px] font-black px-2.5 py-1 rounded-full bg-emerald-400 text-slate-950'
+                    : 'text-[10px] font-black px-2.5 py-1 rounded-full bg-amber-300 text-slate-950';
+            }
+            if (bannerTitle && isOnline) {
+                bannerTitle.textContent = '✅ 雲端與本機雙重防消失保護中（關掉重開自動恢復）';
+            }
+        }
+
+        // 暴露給主程式呼叫的雲端寫入函式
+        window.syncDataToCloudVault = async function (recordsArr, presetsObj, timestamp) {
+            if (!db || !currentUser) return;
+            try {
+                const vaultDocRef = _doc(db, 'artifacts', appId, 'users', currentUser.uid, 'poker_vault', 'main_state');
+                await _setDoc(vaultDocRef, {
+                    recordsJson: JSON.stringify(recordsArr),
+                    presetsJson: JSON.stringify(presetsObj),
+                    updatedAt: timestamp || Date.now()
+                });
+            } catch (e) {
+                console.warn('寫入雲端備份失敗:', e);
+            }
+        };
+
+        initCloudPersistence();
+    </script>
+
     <script>
         // 升級版儲存 Key (V2 預設載入 5/5, 5/10, 10/20, 20/40 與 華人撲克)
         const STORAGE_KEY_RECORDS = 'POKER_PRO_RECORDS_V2';
         const STORAGE_KEY_PRESETS = 'POKER_PRO_PRESETS_V2';
+        const STORAGE_KEY_UPDATED_AT = 'POKER_PRO_UPDATED_AT_V2';
+        const STORAGE_KEY_AUTO_DL = 'POKER_PRO_AUTO_DL_V2';
+
+        // IndexedDB 資料庫名稱（比 localStorage 更持久的本機資料庫）
+        const IDB_NAME = 'PokerRollPermanentDB';
+        const IDB_STORE = 'vault';
 
         // 依使用者要求設定的預設值：地點只預設「華人撲克」，盲注預設「5/5, 5/10, 10/20, 20/40」
         const DEFAULT_PRESETS = {
@@ -754,6 +895,9 @@
         // 全域狀態
         let records = [];
         let presets = JSON.parse(JSON.stringify(DEFAULT_PRESETS));
+        let lastLocalUpdatedAt = 0;
+        let autoDownloadOnSave = false;
+        let liveFileHandle = null;         // File System Access API 實體檔案控制代碼
         let currentPage = 'RECORD';        // 'RECORD' | 'CHART' | 'HISTORY' | 'SETTINGS'
         let currentFormType = 'CASH';      // 'CASH' | 'MTT'
         let currentCalcMode = 'CASHOUT';   // 'CASHOUT' | 'DIRECT'
@@ -763,18 +907,8 @@
         let bankrollChartInstance = null;
         let deferredPwaPrompt = null;
 
-        // 初始化與註冊可安裝 PWA
-        window.onload = function () {
-            setupInstallablePwa();
-            loadFromStorage();
-            setNowToDatetimeInput();
-            renderPresetSelectors();
-            syncPreviewCalculation();
-            renderAll();
-        };
-
-        // 動態產生 PWA Manifest 與 Service Worker
-        function setupInstallablePwa() {
+        // 初始化與註冊可安裝 PWA + 向瀏覽器申請「永久不被清理」的儲存權限
+function setupInstallablePwa() {
             try {
                 // 靜態 manifest + service worker（部署於 GitHub Pages）
                 if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
@@ -786,6 +920,206 @@
                 });
             } catch (err) {
                 console.warn('PWA 設定略過:', err);
+            }
+        }
+function switchPage(page) {
+            currentPage = page;
+            ['RECORD', 'CHART', 'HISTORY', 'SETTINGS'].forEach(p => {
+                const sec = document.getElementById('page-' + p);
+                const btn = document.getElementById('nav-btn-' + p);
+                if (p === page) {
+                    sec.classList.remove('hidden');
+                    btn.classList.add('nav-active');
+                } else {
+                    sec.classList.add('hidden');
+                    btn.classList.remove('nav-active');
+                }
+            });
+
+            if (page === 'CHART') {
+                setTimeout(() => renderChart(), 50);
+            } else if (page === 'SETTINGS') {
+                renderModalPresetLists();
+                document.getElementById('backup-json-area').value = JSON.stringify({ presets, records }, null, 2);
+            }
+        }
+function restoreDefaultPresets() {
+            presets = JSON.parse(JSON.stringify(DEFAULT_PRESETS));
+            saveToStorage();
+            renderPresetSelectors();
+            renderModalPresetLists();
+            showToast('✅ 已恢復預設：華人撲克 & 5/5~20/40');
+        }
+
+        // 一頁式分頁跳選器
+
+        window.onload = async function () {
+            requestPersistentStoragePermission();
+            setupInstallablePwa();
+            await loadFromStorage();
+            await seedIndexedDBFromLocalStorage();
+            setNowToDatetimeInput();
+            renderPresetSelectors();
+            syncPreviewCalculation();
+            renderAll();
+        };
+
+        // 向手機/電腦瀏覽器要求 Persistent Storage（禁止系統在空間不足或隔幾天後自動清除資料）
+        async function requestPersistentStoragePermission() {
+            try {
+                if (navigator.storage && navigator.storage.persist) {
+                    await navigator.storage.persist();
+                }
+            } catch (e) {}
+        }
+
+        // IndexedDB 讀寫封裝（第二層本機硬碟資料庫保護）
+        function openPokerIndexedDB() {
+            return new Promise((resolve, reject) => {
+                if (!window.indexedDB) return resolve(null);
+                const req = indexedDB.open(IDB_NAME, 1);
+                req.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(IDB_STORE)) {
+                        db.createObjectStore(IDB_STORE);
+                    }
+                };
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => resolve(null);
+            });
+        }
+
+        async function saveToIndexedDB(dataObj) {
+            try {
+                const db = await openPokerIndexedDB();
+                if (!db) return;
+                const tx = db.transaction(IDB_STORE, 'readwrite');
+                tx.objectStore(IDB_STORE).put(dataObj, 'main_backup');
+            } catch (e) {}
+        }
+
+        async function readFromIndexedDB() {
+            try {
+                const db = await openPokerIndexedDB();
+                if (!db) return null;
+                return await new Promise((resolve) => {
+                    const tx = db.transaction(IDB_STORE, 'readonly');
+                    const req = tx.objectStore(IDB_STORE).get('main_backup');
+                    req.onsuccess = () => resolve(req.result || null);
+                    req.onerror = () => resolve(null);
+                });
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // 當雲端有資料傳回時自動比對並恢復
+        window.applyCloudRestoredData = function (cloudRecords, cloudPresets, cloudUpdatedAt) {
+            if (cloudRecords.length > records.length || (cloudUpdatedAt > lastLocalUpdatedAt && cloudRecords.length > 0)) {
+                records = cloudRecords;
+                if (cloudPresets && cloudPresets.locations && cloudPresets.stakes) {
+                    presets = cloudPresets;
+                }
+                lastLocalUpdatedAt = cloudUpdatedAt || Date.now();
+                localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(records));
+                localStorage.setItem(STORAGE_KEY_PRESETS, JSON.stringify(presets));
+                localStorage.setItem(STORAGE_KEY_UPDATED_AT, String(lastLocalUpdatedAt));
+                saveToIndexedDB({ records, presets, updatedAt: lastLocalUpdatedAt });
+                renderPresetSelectors();
+                renderAll();
+            }
+        };
+
+        window.pushLocalStateToCloud = function () {
+            if (records.length > 0 && window.syncDataToCloudVault) {
+                window.syncDataToCloudVault(records, presets, lastLocalUpdatedAt || Date.now());
+            }
+        };
+
+        // 綁定電腦或 Android 手機上的實體硬碟檔案 (File System Access API)
+        async function connectLiveLocalFile() {
+            if (window.showSaveFilePicker) {
+                try {
+                    liveFileHandle = await window.showSaveFilePicker({
+                        suggestedName: '撲克記帳王_永久帳本.json',
+                        types: [{
+                            description: '撲克記帳王資料檔 (.json)',
+                            accept: { 'application/json': ['.json'] }
+                        }]
+                    });
+                    await writeToLiveFileHandle();
+                    document.getElementById('btn-live-file').textContent = '✅ 已綁定硬碟檔';
+                    document.getElementById('btn-live-file').className = 'btn-pop px-2.5 py-1 rounded-xl bg-lime-400 text-slate-950 font-black text-[11px] border border-slate-900';
+                    const statusEl = document.getElementById('live-file-status');
+                    if (statusEl) {
+                        statusEl.textContent = '已連線：' + (liveFileHandle.name || '本機檔案');
+                        statusEl.className = 'text-[10px] font-mono bg-emerald-300 text-slate-950 px-2 py-0.5 rounded font-black';
+                    }
+                    document.getElementById('persistence-banner-sub').textContent = `每次記帳都會直接寫入硬碟檔案：${liveFileHandle.name}`;
+                    showToast('🎉 已成功綁定本機硬碟檔案！之後每筆戰績都會即時寫入該檔案');
+                } catch (err) {
+                    if (err.name !== 'AbortError') {
+                        downloadJsonFile();
+                    }
+                }
+            } else {
+                // 若手機瀏覽器不支援直接綁定控制代碼，立即啟動「存成手機檔案」並開啟每次存檔自動下載詢問
+                downloadJsonFile();
+                showToast('💾 已將戰績檔案直接存入手機「下載」資料夾！');
+            }
+        }
+
+        async function writeToLiveFileHandle() {
+            if (!liveFileHandle) return;
+            try {
+                const writable = await liveFileHandle.createWritable();
+                const payload = JSON.stringify({ presets, records, updatedAt: lastLocalUpdatedAt }, null, 2);
+                await writable.write(payload);
+                await writable.close();
+            } catch (e) {
+                console.warn('寫入綁定硬碟檔失敗:', e);
+            }
+        }
+
+        // 觸發從手機或電腦選取檔案讀取
+        function triggerLocalFilePicker() {
+            const fileInput = document.getElementById('local-file-input');
+            fileInput.value = '';
+            fileInput.click();
+        }
+
+        function handleLocalFileSelected(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const text = e.target.result;
+                    const parsed = JSON.parse(text);
+                    if (parsed && Array.isArray(parsed.records)) {
+                        records = parsed.records;
+                        if (parsed.presets && parsed.presets.locations) {
+                            presets = parsed.presets;
+                        }
+                        saveToStorage();
+                        renderPresetSelectors();
+                        renderAll();
+                        showToast(`🎉 成功從「${file.name}」載入 ${records.length} 筆戰績！`);
+                    } else {
+                        showToast('檔案格式不符，請選擇撲克記帳王的 .json 備份檔', 'info');
+                    }
+                } catch (err) {
+                    showToast('讀取檔案失敗，請確認選擇的是 .json 戰績檔', 'info');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function toggleAutoDownloadOnSave(checked) {
+            autoDownloadOnSave = !!checked;
+            localStorage.setItem(STORAGE_KEY_AUTO_DL, autoDownloadOnSave ? '1' : '0');
+            if (autoDownloadOnSave) {
+                showToast('✅ 已開啟：每次新增戰績時會自動下載最新檔案到手機/電腦');
             }
         }
 
@@ -814,58 +1148,65 @@
         }
 
         // 一鍵將整個 App 打包成獨立 HTML 檔案下載到 Android 手機
+
+// 一鍵將整個 App 連同「目前所有戰績」嵌入打包成獨立 HTML 檔案下載到手機/電腦
         function downloadStandaloneHtmlApp() {
             try {
+                // 先把目前的戰績與設定直接塞進 DOM 裡的 #embedded-poker-data，這樣下載出去的 HTML 檔案本身就內含所有資料！
+                const embedEl = document.getElementById('embedded-poker-data');
+                if (embedEl) {
+                    embedEl.textContent = JSON.stringify({
+                        presets,
+                        records,
+                        updatedAt: Date.now()
+                    });
+                }
                 const htmlContent = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
                 const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = '撲克記帳王App.html';
+                a.download = `撲克記帳王App_${new Date().toISOString().slice(0,10)}.html`;
                 document.body.appendChild(a);
                 a.click();
                 a.remove();
                 setTimeout(() => URL.revokeObjectURL(url), 2000);
                 closeAndroidInstallModal();
-                showToast('📲 已下載「撲克記帳王App.html」！點開即可在手機獨立使用');
+                showToast('📲 已下載內含全部戰績的獨立 App 檔！存在手機/電腦永不消失');
             } catch (e) {
                 showToast('下載失敗，請再試一次', 'info');
             }
         }
-
-        function restoreDefaultPresets() {
-            presets = JSON.parse(JSON.stringify(DEFAULT_PRESETS));
-            saveToStorage();
-            renderPresetSelectors();
-            renderModalPresetLists();
-            showToast('✅ 已恢復預設：華人撲克 & 5/5~20/40');
-        }
-
-        // 一頁式分頁跳選器
-        function switchPage(page) {
-            currentPage = page;
-            ['RECORD', 'CHART', 'HISTORY', 'SETTINGS'].forEach(p => {
-                const sec = document.getElementById('page-' + p);
-                const btn = document.getElementById('nav-btn-' + p);
-                if (p === page) {
-                    sec.classList.remove('hidden');
-                    btn.classList.add('nav-active');
-                } else {
-                    sec.classList.add('hidden');
-                    btn.classList.remove('nav-active');
+        // 升級相容：若 IndexedDB 尚無備份但 localStorage 有資料，把 localStorage 寫入 IDB，
+        // 確保雙層備援從第一次載入就生效（否則要等下一次存檔才有第二層）。
+        async function seedIndexedDBFromLocalStorage() {
+            try {
+                const db = await openPokerIndexedDB();
+                if (!db) return;
+                const tx = db.transaction(IDB_STORE, 'readwrite');
+                const store = tx.objectStore(IDB_STORE);
+                const existing = await new Promise((resolve) => {
+                    const req = store.get('main_backup');
+                    req.onsuccess = () => resolve(req.result);
+                    req.onerror = () => resolve(undefined);
+                });
+                if (existing === undefined && Array.isArray(records) && records.length > 0) {
+                    store.put({ records: records, presets: presets, updatedAt: lastLocalUpdatedAt || Date.now() }, 'main_backup');
                 }
-            });
-
-            if (page === 'CHART') {
-                setTimeout(() => renderChart(), 50);
-            } else if (page === 'SETTINGS') {
-                renderModalPresetLists();
-                document.getElementById('backup-json-area').value = JSON.stringify({ presets, records }, null, 2);
+            } catch (e) {
+                console.warn('[persist] seed failed', e);
             }
         }
-
-        function loadFromStorage() {
+        async function loadFromStorage() {
             try {
+                const autoDlSaved = localStorage.getItem(STORAGE_KEY_AUTO_DL);
+                autoDownloadOnSave = autoDlSaved === '1';
+                const toggleEl = document.getElementById('auto-download-toggle');
+                if (toggleEl) toggleEl.checked = autoDownloadOnSave;
+
+                lastLocalUpdatedAt = Number(localStorage.getItem(STORAGE_KEY_UPDATED_AT) || 0);
+
+                // 1. 優先讀取 localStorage
                 const savedPresets = localStorage.getItem(STORAGE_KEY_PRESETS);
                 if (savedPresets) {
                     const parsed = JSON.parse(savedPresets);
@@ -877,19 +1218,66 @@
                 if (savedRecords) {
                     records = JSON.parse(savedRecords);
                 } else {
-                    // 向下相容讀取舊版戰績紀錄
                     const oldRecords = localStorage.getItem('POKER_PRO_RECORDS_V1');
                     if (oldRecords) records = JSON.parse(oldRecords);
+                }
+
+                // 2. 若 localStorage 被瀏覽器清空，自動從 IndexedDB 救回
+                if (!records || records.length === 0) {
+                    const idbData = await readFromIndexedDB();
+                    if (idbData && Array.isArray(idbData.records) && idbData.records.length > 0) {
+                        records = idbData.records;
+                        if (idbData.presets) presets = idbData.presets;
+                        lastLocalUpdatedAt = idbData.updatedAt || Date.now();
+                        showToast('🛡️ 已自動從本機深層資料庫恢復您的戰績！');
+                    }
+                }
+
+                // 3. 若下載的是「內嵌戰績版 HTML App」，自動從檔案內嵌區塊載入戰績
+                if (!records || records.length === 0) {
+                    const embedEl = document.getElementById('embedded-poker-data');
+                    if (embedEl && embedEl.textContent && embedEl.textContent.trim() !== 'null') {
+                        const embedded = JSON.parse(embedEl.textContent);
+                        if (embedded && Array.isArray(embedded.records) && embedded.records.length > 0) {
+                            records = embedded.records;
+                            if (embedded.presets) presets = embedded.presets;
+                            lastLocalUpdatedAt = embedded.updatedAt || Date.now();
+                        }
+                    }
                 }
             } catch (e) {
                 console.error('載入儲存資料失敗:', e);
             }
         }
 
-        function saveToStorage() {
+        function saveToStorage(triggerFileSave = false) {
             try {
+                lastLocalUpdatedAt = Date.now();
+                // 第一重：寫入 localStorage
                 localStorage.setItem(STORAGE_KEY_PRESETS, JSON.stringify(presets));
                 localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(records));
+                localStorage.setItem(STORAGE_KEY_UPDATED_AT, String(lastLocalUpdatedAt));
+
+                // 第二重：寫入 IndexedDB 深層資料庫
+                saveToIndexedDB({ records, presets, updatedAt: lastLocalUpdatedAt });
+
+                // 第三重：同步寫入雲端資料庫 (Firestore)
+                if (window.syncDataToCloudVault) {
+                    window.syncDataToCloudVault(records, presets, lastLocalUpdatedAt);
+                }
+
+                // 第四重：若已綁定電腦/手機硬碟實體檔案，即時覆寫更新到硬碟檔案
+                if (liveFileHandle) {
+                    writeToLiveFileHandle();
+                } else if (triggerFileSave && autoDownloadOnSave) {
+                    downloadJsonFile();
+                }
+
+                // 同步更新 HTML 內嵌資料區
+                const embedEl = document.getElementById('embedded-poker-data');
+                if (embedEl) {
+                    embedEl.textContent = JSON.stringify({ presets, records, updatedAt: lastLocalUpdatedAt });
+                }
             } catch (e) {
                 console.error('儲存資料失敗:', e);
             }
@@ -1186,13 +1574,13 @@
             if (editId) {
                 const idx = records.findIndex(r => r.id === editId);
                 if (idx !== -1) records[idx] = recordObj;
-                showToast('🎉 已成功修改這筆紀錄！');
+                showToast('🎉 已成功修改並同步備份這筆紀錄！');
             } else {
                 records.push(recordObj);
-                showToast('🎉 收池成功！已儲存戰績');
+                showToast('🎉 收池成功！已同步存入雲端與本機');
             }
 
-            saveToStorage();
+            saveToStorage(true);
             resetForm();
             renderAll();
         }
@@ -1668,5 +2056,107 @@
             showToast('🎰 已載入範例戰績並跳轉至圖表分析！');
         }
     </script>
+    <script>
+        if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register('sw.js').catch(function (e) {
+                    console.warn('[sw] register failed', e);
+                });
+            });
+        }
+    </script>
+        <!-- ============ 版本更新提示彈窗 ============ -->
+        <div id="update-modal" class="hidden fixed inset-0 z-[9999] items-center justify-center p-4" style="background:rgba(0,0,0,.72);backdrop-filter:blur(4px)">
+            <div class="bg-[#0d1b14] border-2 border-[#C5A358]/50 rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center">
+                <div class="text-5xl mb-3">🆕</div>
+                <h3 class="text-lg font-black text-white mb-1.5">有新版本可用</h3>
+                <p class="text-xs text-emerald-200/80 leading-relaxed mb-5">
+                    這個 App 已經更新囉！更新後會套用最新功能與修正。
+                </p>
+                <button id="update-now-btn" class="w-full py-3 rounded-2xl font-black text-sm text-slate-950 mb-2" style="background:linear-gradient(180deg,#fef08a,#fbbf24,#d97706)">
+                    立即更新並重新載入
+                </button>
+                <button id="update-later-btn" class="w-full py-2.5 rounded-2xl font-bold text-xs text-emerald-200/70 hover:text-emerald-100" style="background:rgba(255,255,255,.06)">
+                    稍後再說
+                </button>
+                <p id="update-status" class="text-[10px] text-emerald-300/60 mt-3 min-h-[14px]"></p>
+            </div>
+        </div>
+        <script>
+        // 版本更新偵測：Service Worker 進入 waiting 狀態時提示使用者
+        (function () {
+            const modal = document.getElementById('update-modal');
+            const nowBtn = document.getElementById('update-now-btn');
+            const laterBtn = document.getElementById('update-later-btn');
+            const statusEl = document.getElementById('update-status');
+            if (!modal || !nowBtn || !laterBtn) return;
+            let reloading = false;
 
-</body></html>
+            function showModal(registration) {
+                if (modalShown) return;
+                modalShown = true;
+                modal.style.display = 'flex';
+                statusEl.textContent = '';
+                nowBtn.disabled = false;
+                nowBtn.onclick = function () {
+                    statusEl.textContent = '正在更新…';
+                    nowBtn.disabled = true;
+                    // 通知等待中的 SW 立即接管，接著重載取得新版本
+                    if (registration && registration.waiting) {
+                        // 新 SW 正在待命 -> 通知它立即接管
+                        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                    }
+                    setTimeout(function () { location.reload(); }, 600);
+                };
+                laterBtn.onclick = function () {
+                    modal.style.display = 'none';
+                };
+            }
+
+            if (!('serviceWorker' in navigator)) return;
+
+            let modalShown = false;
+
+            function trackWaiting(registration) {
+                if (modalShown) return;
+                if (registration.waiting) { showModal(registration); return; }
+                registration.addEventListener('updatefound', function () {
+                    const installing = registration.installing;
+                    if (!installing) return;
+                    installing.addEventListener('statechange', function () {
+                        // 新 SW 已就緒（installed = 待命中；activated = 已自行接管）。
+                        // 首次安裝時沒有既有 controller，不視為「有新版」。
+                        if ((installing.state === 'installed' || installing.state === 'activated')
+                            && navigator.serviceWorker.controller) {
+                            showModal(registration);
+                        }
+                    });
+                });
+            }
+
+            // controllerchange：新的 SW 接管後重載，確保拿到新檔案
+            navigator.serviceWorker.addEventListener('controllerchange', function () {
+                if (reloading) return;
+                reloading = true;
+                location.reload();
+            });
+
+            // 定期檢查更新（例如每 30 分鐘）
+            function checkForUpdates() {
+                navigator.serviceWorker.getRegistration().then(function (reg) {
+                    if (!reg) return;
+                    trackWaiting(reg);
+                    reg.update().catch(function () {});
+                }).catch(function () {});
+            }
+
+            if (document.readyState === 'complete') {
+                checkForUpdates();
+            } else {
+                window.addEventListener('load', checkForUpdates);
+            }
+            setInterval(checkForUpdates, 30 * 60 * 1000);
+        })();
+        </script>
+</body>
+</html>
